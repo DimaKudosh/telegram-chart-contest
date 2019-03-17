@@ -83,7 +83,7 @@ export class LineChart {
     }
 
     calculateMaxValue() {
-        const maxValue = Math.max(...this.datasets.map(dataset => dataset.getMax()));
+        const maxValue = Math.max(...this.datasets.filter(dataset => dataset.isDisplayed).map(dataset => dataset.getMax()));
         this.maxValue = niceScale(0, maxValue, 6);
     }
 
@@ -98,11 +98,7 @@ export class LineChart {
             this.selection.draw();
         }
         for (const line of this.lines) {
-            if (this.isInitCompleted) {
-                line.draw();
-            } else {
-                line.appear();
-            }
+            line.draw();
         }
     }
 
@@ -117,5 +113,14 @@ export class LineChart {
             layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         }
         this.draw();
+    }
+
+    emitLegendChange(index) {
+        this.lines[index].draw();
+        this.calculateMaxValue();
+        for (const layer of this.layers) {
+            layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        }
+        this.yAxis.draw(this.labels, this.maxValue);
     }
 }

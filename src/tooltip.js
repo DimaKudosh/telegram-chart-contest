@@ -52,8 +52,16 @@ export default class Tooltip {
         this.canvas.clear();
         this.canvas.drawLine([[index, 0], [index, this.maxValue]], '#eee', 1);
         const datasetElements = this.container.querySelectorAll('.telegram-chart-tooltip-dataset-value');
+        const datasetContainers = this.container.querySelectorAll('.telegram-chart-tooltip-dataset');
         let i = 0;
         for (const dataset of this.datasets) {
+            const container = datasetContainers[i];
+            if (!dataset.isDisplayed) {
+                container.style.display = 'none';
+                continue;
+            } else {
+                container.style.display = 'block';
+            }
             datasetElements[i].textContent = dataset.data[index];
             i++;
             this.canvas.drawArc(index, dataset.data[index], 4, dataset.color, 4, '#fff');

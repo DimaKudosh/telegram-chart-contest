@@ -1,4 +1,4 @@
-import FadeInDownAnimation from './animation';
+import { FadeInDownAnimation, FadeOutAnimation } from './animation';
 
 
 export default class Line {
@@ -18,15 +18,31 @@ export default class Line {
             this.canvas.clear();
             this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
         });
-        this.isDisplayed = true;
+    }
+
+    hide() {
+        const animation = new FadeOutAnimation();
+        const points = Array.from(this.dataset.data.entries());
+        animation.animate(this.canvas.ctx, () => {
+            this.canvas.clear();
+            this.canvas.drawLine(points, this.color);
+        });
+        this.isDisplayed = false;
     }
 
     draw() {
+        if (!this.dataset.isDisplayed) {
+            if (this.isDisplayed) {
+                this.hide();
+            }
+            return;
+        }
         if (this.isDisplayed) {
             this.canvas.clear();
             this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
         } else {
             this.appear();
         }
+        this.isDisplayed = true;
     }
 }

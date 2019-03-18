@@ -1,7 +1,8 @@
 export default class Canvas {
-    constructor(width, height, isTopLayer=false) {
+    constructor(width, height, isTopLayer=false, offsets={'left': 0, 'right': 0, 'top': 0, 'bottom': 0}) {
         this.width = width;
         this.height = height;
+        this.offsets = offsets;
         this.canvas = this.create();
         this.ctx = this.canvas.getContext('2d');
         this.xRatio = 1;
@@ -22,20 +23,21 @@ export default class Canvas {
     }
 
     setAbsoluteValues(maxX, maxY) {
-        this.xRatio = this.canvas.width / maxX;
-        this.yRatio = this.canvas.height / maxY;
+        this.xRatio = (this.width - this.offsets['left'] - this.offsets['right']) / maxX;
+        this.yRatio = (this.height - this.offsets['top'] - this.offsets['bottom']) / maxY;
     }
 
     translatePoint(x, y) {
-        const canvasHeight = this.canvas.height;
-        y = ~~(canvasHeight - y * this.yRatio + 0.5);
-        x = ~~(x * this.xRatio + 0.5);
+        const canvasHeight = this.height;
+        const yOffset = this.offsets.bottom;
+        const xOffset = this.offsets.left;
+        y = ~~(canvasHeight - y * this.yRatio + 0.5) - yOffset;
+        x = ~~(x * this.xRatio + 0.5) + xOffset;
         return [x, y];
     }
 
     drawLine(points, color, width=3) {
         const ctx = this.ctx;
-        ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
@@ -46,12 +48,10 @@ export default class Canvas {
         }
         ctx.stroke();
         ctx.closePath();
-        ctx.restore();
     }
 
     drawArc(x, y, radius, color, width=3, fillColor=null) {
         const ctx = this.ctx;
-        ctx.save();
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
@@ -62,7 +62,6 @@ export default class Canvas {
             ctx.fillStyle = fillColor;
             ctx.fill();
         }
-        ctx.restore();
     }
 
     putText(x, y, text, font) {
@@ -73,6 +72,11 @@ export default class Canvas {
     }
 
     clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.width, this.height);
+    }
+
+    clearRegion(x, y, w, h) {
+        [x, y] = this.translatePoint(x, y);
+        this.ctx.clearRect(x, y, w || this.width, h || this.height);
     }
 }

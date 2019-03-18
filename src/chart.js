@@ -9,6 +9,9 @@ import Line from './line';
 import Legend from './legend';
 
 
+const offset = {'top': 20, 'right': 0, 'bottom': 20, 'left': 0};
+
+
 export class LineChart {
     constructor(container, labels, datasets, options) {
         const width = container.clientWidth,
@@ -33,17 +36,17 @@ export class LineChart {
             this.xAxis = new XAxis(canvas);
         }
         if (options['yAxis']) {
-            const canvas = new Canvas(width, height);
+            const canvas = new Canvas(width, height, false, offset);
             this.layers.push(canvas);
             this.yAxis = new YAxis(canvas);
         }
         if (options['tooltip']) {
-            const canvas = new Canvas(width, height, true);
+            const canvas = new Canvas(width, height, true, offset);
             this.layers.push(canvas);
             this.tooltip = new Tooltip(canvas, this);
         }
         this.lines = this.datasets.map((dataset) => {
-            const canvas = new Canvas(width, height);
+            const canvas = new Canvas(width, height, false, offset);
             this.layers.push(canvas);
             return new Line(
                 canvas,
@@ -83,8 +86,10 @@ export class LineChart {
     }
 
     calculateMaxValue() {
+        const previousMax = this.maxValue;
         const maxValue = Math.max(...this.datasets.map(dataset => dataset.getMax()));
         this.maxValue = niceScale(0, maxValue, 6);
+        return previousMax !== this.maxValue;
     }
 
     draw() {
@@ -112,10 +117,17 @@ export class LineChart {
         for (const dataset of this.datasets) {
             dataset.setRanges(this.startIndex, this.endIndex);
         }
-        this.calculateMaxValue();
+        const sizeChanged = this.calculateMaxValue();
         for (const layer of this.layers) {
             layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         }
-        this.draw();
+        if (sizeChanged) {
+            this.yAxis.draw(this.labels, this.maxValue);
+        }
+        this.xAxis.draw(this.labels, this.maxValue);
+        for (const line of this.lines) {
+            line.draw();
+        }
+        // this.draw();
     }
 }

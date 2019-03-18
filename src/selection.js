@@ -20,6 +20,7 @@ export default class Selection {
         this.previousCursor = 'default';
         this.cursorOnCanvas = false;
 
+        this.canvasOffset = canvas.canvas.offsetLeft;
 
         this.body = document.body;
         this.ctx.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
@@ -82,7 +83,7 @@ export default class Selection {
     }
 
     onMouseDown(e) {
-        const x = e.offsetX - this.ctx.canvas.offsetLeft;
+        const x = e.offsetX - this.canvasOffset;
         this.status = this.getStatus(x);
         if (this.status === DRAGGING) {
             this.lastX = x;
@@ -91,13 +92,14 @@ export default class Selection {
     }
 
     onMouseMove(e) {
-        const x = e.offsetX - this.ctx.canvas.offsetLeft;
         if (!this.status) {
             if (this.cursorOnCanvas) {
+                const x = e.offsetX - this.canvasOffset;
                 this.setCursor(x);
             }
             return;
         }
+        const x = e.offsetX - this.canvasOffset;
         const borderWidth = this.borderWidth / 2;
         const canvasWidth = this.canvas.width - borderWidth;
         switch (this.status) {

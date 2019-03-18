@@ -8,6 +8,7 @@ export default class Tooltip {
         this.datasets = chart.datasets;
         this.maxValue = chart.maxValue;
         this.chart = chart;
+        this.cache = {};
 
         this.canvas.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
         this.canvas.canvas.addEventListener('mouseout', this.onMouseOut.bind(this), true);
@@ -42,6 +43,15 @@ export default class Tooltip {
         div.appendChild(allDatasetsContainer);
         this.chart.container.appendChild(div);
         return div;
+    }
+
+    renderLabel(label) {
+        let val = this.cache[label];
+        if (!val) {
+            val = tooltipTimestampToString(label);
+            this.cache[label] = val;
+        }
+        return val;
     }
 
     onMouseMove(e) {

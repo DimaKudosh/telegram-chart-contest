@@ -1,4 +1,4 @@
-export default class FadeInDownAnimation {
+export class FadeInDownAnimation {
     constructor(duration=300) {
         this.duration = duration;
     }
@@ -28,27 +28,30 @@ export default class FadeInDownAnimation {
         render();
     }
 }
-//
-//
-// function animate(duration) {
-//     let lastRender = Date.now();
-//     const animationStartTime = Date.now();
-//     let previousProgress = 0;
-//     ctx.translate(0, -canvasHeight);
-//
-//     function render() {
-//         const delta = Date.now() - animationStartTime;
-//         const progress = delta / duration;
-//         if (progress >= 1) {
-//             return
-//         }
-//         console.log(progress, previousProgress);
-//         const y = canvasHeight * (progress - previousProgress);
-//         ctx.translate(0, y);
-//         ctx.globalAlpha = progress;
-//         drawLine(points, 1);
-//         previousProgress = progress;
-//         requestAnimationFrame(render);
-//     }
-//     render();
-// }
+
+
+export class FadeOutAnimation {
+    constructor(duration=300) {
+        this.duration = duration;
+    }
+
+    animate(ctx, drawCallback) {
+        const duration = this.duration;
+        const animationStartTime = Date.now();
+        const canvas = ctx.canvas;
+        ctx.save();
+        function render() {
+            const delta = Date.now() - animationStartTime;
+            const progress = delta / duration;
+            if (progress >= 1) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.restore();
+                return;
+            }
+            ctx.globalAlpha =  1 - progress;
+            drawCallback();
+            requestAnimationFrame(render);
+        }
+        render();
+    }
+}

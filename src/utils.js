@@ -6,6 +6,9 @@ export function tooltipTimestampToString(timestamp) {
     return (new Date(timestamp)).toLocaleString('en-us', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+export function generateID() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+}
 
 function niceNum(range, round) {
     const exponent = Math.floor(Math.log10(range));

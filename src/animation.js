@@ -1,3 +1,35 @@
+export class Animation {
+    constructor(canvas, stepCallback, completeCallback, duration=250) {
+        this.canvas = canvas;
+        this.duration = duration;
+        this.stepCb = stepCallback;
+        this.completeCb = completeCallback;
+    }
+
+    run() {
+        const duration = this.duration,
+              now = Date.now,
+              animationStartTime = now(),
+              canvas = this.canvas,
+              ctx = canvas.ctx,
+              stepCallback = this.stepCb;
+        function render() {
+            ctx.save();
+            const progress = (now() - animationStartTime) / duration;
+            if (progress >= 1) {
+                stepCallback();
+                this.completeCb();
+                return;
+            }
+            stepCallback();
+            ctx.restore();
+            requestAnimationFrame(render);
+        }
+        render();
+    }
+}
+
+
 export default class FadeInDownAnimation {
     constructor(duration=300) {
         this.duration = duration;

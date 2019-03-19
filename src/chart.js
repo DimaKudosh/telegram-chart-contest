@@ -9,7 +9,7 @@ import Line from './line';
 import Legend from './legend';
 
 
-const offset = {'top': 20, 'right': 0, 'bottom': 20, 'left': 0};
+const offset = {'top': 20, 'right': 7, 'bottom': 20, 'left': 7};
 
 
 export class LineChart {
@@ -18,8 +18,8 @@ export class LineChart {
             height = container.clientHeight;
         this.allLabels = labels;
 
-        this.startIndex = 0;
-        this.endIndex = labels.length;
+        this.start = 0;
+        this.end = labels.length;
 
         this.datasets = datasets.map((dataset) => {
             return new Dataset(dataset);
@@ -74,7 +74,7 @@ export class LineChart {
     }
 
     get labels() {
-        return this.allLabels.slice(this.startIndex, this.endIndex + 1);
+        return this.allLabels.slice(this.start, this.end + 1);
     }
 
     createContainer(container) {
@@ -112,10 +112,10 @@ export class LineChart {
     }
 
     setSelection(start, end) {
-        this.startIndex = start;
-        this.endIndex = end;
+        this.start = start;
+        this.end = end;
         for (const dataset of this.datasets) {
-            dataset.setRanges(this.startIndex, this.endIndex);
+            dataset.setRanges(start, end);
         }
         const sizeChanged = this.calculateMaxValue();
         for (const layer of this.layers) {

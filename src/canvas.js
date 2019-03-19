@@ -23,15 +23,16 @@ export default class Canvas {
     }
 
     setAbsoluteValues(maxX, maxY) {
-        this.xRatio = (this.width - this.offsets['left'] - this.offsets['right']) / maxX;
-        this.yRatio = (this.height - this.offsets['top'] - this.offsets['bottom']) / maxY;
+        const offsets = this.offsets;
+        this.xRatio = (this.width - offsets['left'] - offsets['right']) / maxX;
+        this.yRatio = (this.height - offsets['top'] - offsets['bottom']) / maxY;
     }
 
     translatePoint(x, y) {
-        const canvasHeight = this.height;
-        const yOffset = this.offsets.bottom;
-        const xOffset = this.offsets.left;
-        y = ~~(canvasHeight - y * this.yRatio + 0.5) - yOffset;
+        const offsets = this.offsets,
+              yOffset = offsets.bottom,
+              xOffset = offsets.left;
+        y = ~~(this.height - y * this.yRatio + 0.5) - yOffset;
         x = ~~(x * this.xRatio + 0.5) + xOffset;
         return [x, y];
     }

@@ -1,4 +1,4 @@
-import { FadeInDownAnimation, FadeOutAnimation } from './animation';
+import {CanvasTransformAnimation, FadeInDownAnimation, FadeOutAnimation} from './animation';
 
 
 export default class Line {
@@ -9,7 +9,21 @@ export default class Line {
         this.labels = labels;
         this.color = dataset.color;
 
+        this.animation = new CanvasTransformAnimation();
+
         this.isDisplayed = false;
+    }
+
+    animatedResize(maxX, maxY) {
+        // this.animation.cancel();
+        const canvas = this.canvas;
+        const xRatio = (canvas.width - canvas.offsets['left'] - canvas.offsets['right']) / maxX;
+        const yRatio = (canvas.height - canvas.offsets['top'] - canvas.offsets['bottom']) / maxY;
+        const points = Array.from(this.dataset.data.entries());
+        this.animation.animate(this.canvas, xRatio, yRatio, () => {
+            this.canvas.clear();
+            this.canvas.drawLine(points, this.color);
+        });
     }
 
     appear() {

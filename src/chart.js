@@ -114,25 +114,46 @@ export class LineChart {
             dataset.setRanges(this.startIndex, this.endIndex);
         }
         const sizeChanged = this.calculateMaxValue();
-        for (const layer of this.layers) {
-            layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
-        }
+        // for (const layer of this.layers) {
+        //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        // }
         if (sizeChanged) {
+            this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
             this.yAxis.draw(this.labels, this.maxValue);
+            this.tooltip.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            this.tooltip.draw(this.labels, this.maxValue);
+            for (const line of this.lines) {
+                line.animatedResize(this.labels.length - 1, this.maxValue)
+            }
+        } else {
+            for (const line of this.lines) {
+                line.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+                line.draw();
+            }
         }
+        this.xAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         this.xAxis.draw(this.labels, this.maxValue);
-        for (const line of this.lines) {
-            line.draw();
-        }
+
         // this.draw();
     }
 
     emitLegendChange(index) {
         this.lines[index].draw();
-        this.calculateMaxValue();
-        for (const layer of this.layers) {
-            layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        const changed = this.calculateMaxValue();
+        console.log(changed);
+        // for (const layer of this.layers) {
+        //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        // }
+        if (changed) {
+            this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            this.yAxis.draw(this.labels, this.maxValue);
+            for (let i = 0; i < this.lines.length; i++) {
+                if (i === index) {
+                    continue;
+                }
+                const line = this.lines[i];
+                line.animatedResize(this.labels.length - 1, this.maxValue)
+            }
         }
-        this.yAxis.draw(this.labels, this.maxValue);
     }
 }

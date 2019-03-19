@@ -18,6 +18,6 @@ export default class Dataset {
     }
 
     get data() {
-        return this.allData.slice(this.start, this.end);
+        return this.allData.slice(this.start, this.end + 1);
     }
 }

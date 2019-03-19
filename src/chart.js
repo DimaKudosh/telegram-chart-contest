@@ -74,7 +74,7 @@ export class LineChart {
     }
 
     get labels() {
-        return this.allLabels.slice(this.startIndex, this.endIndex);
+        return this.allLabels.slice(this.startIndex, this.endIndex + 1);
     }
 
     createContainer(container) {
@@ -112,8 +112,8 @@ export class LineChart {
     }
 
     setSelection(start, end) {
-        this.startIndex = this.allLabels.indexOf(start);
-        this.endIndex = this.allLabels.indexOf(end) + 1;
+        this.startIndex = start;
+        this.endIndex = end;
         for (const dataset of this.datasets) {
             dataset.setRanges(this.startIndex, this.endIndex);
         }

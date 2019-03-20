@@ -88,7 +88,7 @@ export class LineChart {
     calculateMaxValue() {
         const previousMax = this.maxValue;
         const maxValue = Math.max(...this.datasets.filter(dataset => dataset.isDisplayed).map(dataset => dataset.getMax()));
-        this.maxValue = niceScale(0, maxValue, 6);
+        this.maxValue = niceScale(0, maxValue, 7);
         return previousMax !== this.maxValue;
     }
 
@@ -118,10 +118,13 @@ export class LineChart {
         //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         // }
         if (sizeChanged) {
-            this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
-            this.yAxis.draw(this.labels, this.maxValue);
+            // this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            // this.yAxis.draw(this.labels, this.maxValue);
+
+            this.yAxis.animatedDraw(this.labels, this.labels.length - 1, this.maxValue);
+
             this.tooltip.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
-            this.tooltip.draw(this.labels, this.maxValue);
+            // this.tooltip.draw(this.labels, this.maxValue);
             for (const line of this.lines) {
                 line.animatedResize(this.labels.length - 1, this.maxValue)
             }
@@ -145,8 +148,9 @@ export class LineChart {
         //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         // }
         if (changed) {
-            this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
-            this.yAxis.draw(this.labels, this.maxValue);
+            // this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            // this.yAxis.draw(this.labels, this.maxValue);
+            this.yAxis.animatedDraw(this.labels, this.labels.length - 1, this.maxValue);
             for (let i = 0; i < this.lines.length; i++) {
                 if (i === index) {
                     continue;

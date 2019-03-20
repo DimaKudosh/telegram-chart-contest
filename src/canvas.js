@@ -22,10 +22,19 @@ export default class Canvas {
         return canvas;
     }
 
-    setAbsoluteValues(maxX, maxY) {
+    computeXRatio(maxX) {
         const offsets = this.offsets;
-        this.xRatio = (this.width - offsets['left'] - offsets['right']) / maxX;
-        this.yRatio = (this.height - offsets['top'] - offsets['bottom']) / maxY;
+        return (this.width - offsets['left'] - offsets['right']) / maxX;
+    }
+
+    computeYRatio(maxY) {
+        const offsets = this.offsets;
+        return (this.height - offsets['top'] - offsets['bottom']) / maxY;
+    }
+
+    setAbsoluteValues(maxX, maxY) {
+        this.xRatio = this.computeXRatio(maxX);
+        this.yRatio = this.computeYRatio(maxY);
     }
 
     translatePoint(x, y) {

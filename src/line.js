@@ -1,4 +1,4 @@
-import { FadeInDownAnimation, FadeOutAnimation, Animation } from './animation';
+import Animation from './animation';
 
 
 export default class Line {
@@ -10,77 +10,84 @@ export default class Line {
         this.color = dataset.color;
 
         this.isDisplayed = false;
+        this.callbacks = [];
 
-        this.resizeAnim = new Animation(canvas);
+        this.animation = new Animation();
     }
 
-    changeMaxValues(maxY, maxX) {
-        this.animation = new Animation(canvas, (progress) => {
-            canvas.setAbsoluteValues(maxX, maxY);
+    get points() {
+        return Array.from(this.dataset.data.entries());
+    }
+
+    animate() {
+        const animation = this.animation,
+            points = this.points,
+            callbacks = this.callbacks,
+            canvas = this.canvas;
+        animation.cancel();
+        animation.run(canvas.ctx, (progress) => {
             canvas.clear();
-            this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
-        })
+            for (const callback of callbacks) {
+                callback(progress);
+            }
+            canvas.drawLine(points, this.color);
+        });
+        this.callbacks = [];
     }
 
     animatedResize(maxX, maxY) {
-        const animation = this.resizeAnim;
-        animation.cancel();
-        // this.animation.cancel();
-        const canvas = this.canvas;
-        const xRatio = (canvas.width - canvas.offsets['left'] - canvas.offsets['right']) / maxX;
-        const yRatio = (canvas.height - canvas.offsets['top'] - canvas.offsets['bottom']) / maxY;
-        const points = Array.from(this.dataset.data.entries());
-        const currentRatioY = canvas.yRatio;
-        const currentRatioX = canvas.xRatio;
-        const stepX = xRatio - currentRatioX;
-        const stepY = yRatio - currentRatioY;
-
+        const canvas = this.canvas,
+            xRatio = canvas.computeXRatio(maxX),
+            yRatio = canvas.computeYRatio(maxY),
+            currentYRatio = canvas.yRatio,
+            stepY = yRatio - currentYRatio;
         canvas.xRatio = xRatio;
-        animation.run((progress) => {
-            canvas.yRatio = currentRatioY + (progress * stepY);
-            // canvas.xRatio = xRatio;
-            canvas.clear();
-            canvas.drawLine(Array.from(this.dataset.data.entries()));
-        }, () => {
-            canvas.clear();
-            canvas.yRatio = currentRatioY + (1 * stepY);
-            // canvas.setAbsoluteValues(maxX, maxY);
-            canvas.drawLine(Array.from(this.dataset.data.entries()));
+        this.callbacks.push((progress) => {
+            canvas.yRatio = currentYRatio + (progress * stepY);
         });
-
+        return this;
     }
 
     appear() {
-        const animation = new FadeInDownAnimation();
-        animation.animate(this.canvas.ctx, ()=>{
-            this.canvas.clear();
-            this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
+        const canvas = this.canvas,
+            ctx = canvas.ctx,
+            step = 1 - ctx.globalAlpha;
+        this.callbacks.push((progress) => {
+            ctx.globalAlpha = progress;
         });
+        return this;
     }
 
     hide() {
-        const animation = new FadeOutAnimation();
-        const points = Array.from(this.dataset.data.entries());
-        animation.animate(this.canvas.ctx, () => {
-            this.canvas.clear();
-            this.canvas.drawLine(points, this.color);
+        const canvas = this.canvas,
+            ctx = canvas.ctx,
+            step = ctx.globalAlpha - 1;
+        this.callbacks.push((progress) => {
+            ctx.globalAlpha = 1 - progress;
         });
-        this.isDisplayed = false;
+        return this;
+    }
+
+    toggle() {
+        if (this.dataset.isDisplayed) {
+            return this.appear();
+        }
+        return this.hide();
     }
 
     draw() {
-        if (!this.dataset.isDisplayed) {
-            if (this.isDisplayed) {
-                this.hide();
-            }
-            return;
-        }
-        if (this.isDisplayed) {
+        // if (!this.dataset.isDisplayed) {
+        //     if (this.isDisplayed) {
+        //         this.hide();
+        //     }
+        //     return;
+        // }
+        // if (this.isDisplayed) {
             this.canvas.clear();
             this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
-        } else {
-            this.appear();
-        }
+        // } else {
+        //     this.appear();
+        // }
         this.isDisplayed = true;
     }
 }

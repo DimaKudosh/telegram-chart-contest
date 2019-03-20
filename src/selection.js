@@ -159,9 +159,11 @@ export default class Selection {
     }
 
     onMouseUp() {
+        if (this.status) {
+            this.updateTarget();
+        }
         this.status = null;
         this.lastX = null;
-        this.updateTarget();
         if (!this.cursorOnCanvas) {
             this.body.style.cursor = this.lastCursor;
         }

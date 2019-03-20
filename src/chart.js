@@ -87,8 +87,8 @@ export class LineChart {
 
     calculateMaxValue() {
         const previousMax = this.maxValue;
-        const maxValue = Math.max(...this.datasets.map(dataset => dataset.getMax()));
-        this.maxValue = niceScale(0, maxValue, 6);
+        const maxValue = Math.max(...this.datasets.filter(dataset => dataset.isDisplayed).map(dataset => dataset.getMax()));
+        this.maxValue = niceScale(0, maxValue, 7);
         return previousMax !== this.maxValue;
     }
 
@@ -103,11 +103,7 @@ export class LineChart {
             this.selection.draw();
         }
         for (const line of this.lines) {
-            if (this.isInitCompleted) {
-                line.draw();
-            } else {
-                line.appear();
-            }
+            line.draw();
         }
     }
 
@@ -118,16 +114,50 @@ export class LineChart {
             dataset.setRanges(start, end);
         }
         const sizeChanged = this.calculateMaxValue();
-        for (const layer of this.layers) {
-            layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
-        }
+        // for (const layer of this.layers) {
+        //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        // }
         if (sizeChanged) {
-            this.yAxis.draw(this.labels, this.maxValue);
+            // this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            // this.yAxis.draw(this.labels, this.maxValue);
+
+            this.yAxis.animatedDraw(this.labels, this.labels.length - 1, this.maxValue);
+
+            this.tooltip.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            // this.tooltip.draw(this.labels, this.maxValue);
+            for (const line of this.lines) {
+                line.animatedResize(this.labels.length - 1, this.maxValue)
+            }
+        } else {
+            for (const line of this.lines) {
+                line.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+                line.draw();
+            }
         }
+        this.xAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         this.xAxis.draw(this.labels, this.maxValue);
-        for (const line of this.lines) {
-            line.draw();
-        }
+
         // this.draw();
+    }
+
+    emitLegendChange(index) {
+        this.lines[index].draw();
+        const changed = this.calculateMaxValue();
+        console.log(changed);
+        // for (const layer of this.layers) {
+        //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+        // }
+        if (changed) {
+            // this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
+            // this.yAxis.draw(this.labels, this.maxValue);
+            this.yAxis.animatedDraw(this.labels, this.labels.length - 1, this.maxValue);
+            for (let i = 0; i < this.lines.length; i++) {
+                if (i === index) {
+                    continue;
+                }
+                const line = this.lines[i];
+                line.animatedResize(this.labels.length - 1, this.maxValue)
+            }
+        }
     }
 }

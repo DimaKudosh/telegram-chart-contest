@@ -6,6 +6,8 @@ export default class Dataset {
 
         this.start = 0;
         this.end = data.length;
+
+        this.isDisplayed = true;
     }
 
     getMax() {

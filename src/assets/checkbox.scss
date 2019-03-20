@@ -1,0 +1,74 @@
+$size: 30px;
+$animation: linear;
+
+
+.telegram-chart-legend {
+}
+
+.telegram-chart-legend-checkbox {
+  display: inline-block;
+  border: 2px solid #ccc;
+  border-radius: $size;
+  padding: (0.2 * $size) (0.4 * $size);
+  margin-right: 10px;
+  vertical-align: top;
+
+  input[type='checkbox'] {
+    display: none;
+
+    & + label {
+      box-sizing: border-box;
+      user-select: none;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      & > span {
+        box-sizing: border-box;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: $size;
+        width: $size;
+        height: $size;
+        border-radius: $size;
+        background: transparent;
+        border: 2px solid #9E9E9E;
+        cursor: pointer;
+        transition: border 250ms $animation;
+      }
+    }
+
+    &:checked {
+      & + label > span {
+        border-width: 0.5 * $size;
+
+        &:before {
+          box-sizing: border-box;
+          user-select: none;
+          content: "";
+          position: absolute;
+          top: 0.2 * $size;
+          border-right: 3px solid transparent;
+          border-bottom: 3px solid transparent;
+          transform: rotate(45deg);
+          animation: checkbox-check 125ms 125ms $animation forwards;
+        }
+      }
+    }
+  }
+}
+
+@keyframes checkbox-check {
+  0% {
+    border-color: #fff;
+    width: 0;
+    height: 0;
+  }
+  100% {
+    border-color: #fff;
+    width: 0.3 * $size;
+    height: 0.5 * $size;
+  }
+}

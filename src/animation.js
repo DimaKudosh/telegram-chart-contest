@@ -1,36 +1,41 @@
 export class Animation {
-    constructor(canvas, stepCallback, completeCallback, duration=250) {
+    constructor(canvas, duration=250) {
         this.canvas = canvas;
         this.duration = duration;
-        this.stepCb = stepCallback;
-        this.completeCb = completeCallback;
+
+        this.reqId = null;
     }
 
-    run() {
+    run(stepCallback, completeCallback) {
         const duration = this.duration,
               now = Date.now,
               animationStartTime = now(),
               canvas = this.canvas,
               ctx = canvas.ctx,
-              stepCallback = this.stepCb;
-        function render() {
-            ctx.save();
-            const progress = (now() - animationStartTime) / duration;
-            if (progress >= 1) {
-                stepCallback();
-                this.completeCb();
-                return;
-            }
-            stepCallback();
-            ctx.restore();
-            requestAnimationFrame(render);
-        }
+            render = () => {
+                // ctx.save();
+                const progress = (now() - animationStartTime) / duration;
+                if (progress >= 1) {
+                    completeCallback();
+                    return;
+                }
+                stepCallback(progress);
+                // ctx.restore();
+                this.reqId = requestAnimationFrame(render);
+            };
         render();
+    }
+
+    cancel() {
+        if (this.reqId) {
+            cancelAnimationFrame(this.reqId);
+            this.reqId = null;
+        }
     }
 }
 
 
-export default class FadeInDownAnimation {
+export class FadeInDownAnimation {
     constructor(duration=300) {
         this.duration = duration;
     }
@@ -60,27 +65,68 @@ export default class FadeInDownAnimation {
         render();
     }
 }
-//
-//
-// function animate(duration) {
-//     let lastRender = Date.now();
-//     const animationStartTime = Date.now();
-//     let previousProgress = 0;
-//     ctx.translate(0, -canvasHeight);
-//
-//     function render() {
-//         const delta = Date.now() - animationStartTime;
-//         const progress = delta / duration;
-//         if (progress >= 1) {
-//             return
-//         }
-//         console.log(progress, previousProgress);
-//         const y = canvasHeight * (progress - previousProgress);
-//         ctx.translate(0, y);
-//         ctx.globalAlpha = progress;
-//         drawLine(points, 1);
-//         previousProgress = progress;
-//         requestAnimationFrame(render);
-//     }
-//     render();
-// }
+
+
+export class FadeOutAnimation {
+    constructor(duration=300) {
+        this.duration = duration;
+    }
+
+    animate(ctx, drawCallback) {
+        const duration = this.duration;
+        const animationStartTime = Date.now();
+        const canvas = ctx.canvas;
+        ctx.save();
+        function render() {
+            const delta = Date.now() - animationStartTime;
+            const progress = delta / duration;
+            if (progress >= 1) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.restore();
+                return;
+            }
+            ctx.globalAlpha =  1 - progress;
+            drawCallback();
+            requestAnimationFrame(render);
+        }
+        render();
+    }
+}
+
+
+export class CanvasTransformAnimation {
+    constructor(duration=300) {
+        this.duration = duration;
+        this.req = null;
+    }
+
+    animate(canvas, ratioX, ratioY, drawCallback) {
+        this.cancel();
+        const duration = this.duration;
+        const animationStartTime = Date.now();
+        const currentRatioY = canvas.yRatio;
+        const currentRatioX = canvas.xRatio;
+        const stepX = ratioX - currentRatioX;
+        const stepY = ratioY - currentRatioY;
+        const render = () => {
+            const delta = Date.now() - animationStartTime;
+            const progress = delta / duration;
+            console.log(animationStartTime);
+            if (progress >= 1) {
+                this.req = null;
+                return;
+            };
+            canvas.yRatio = currentRatioY + (progress * stepY);
+            canvas.xRatio = currentRatioX + (progress * stepX);
+            drawCallback();
+            this.req = requestAnimationFrame(render);
+        }
+        render();
+    }
+
+    cancel() {
+        if (this.req) {
+            cancelAnimationFrame(this.req);
+        }
+    }
+}

@@ -33,7 +33,7 @@ export class LineChart {
         if (options['xAxis']) {
             const canvas = new Canvas(width, height);
             this.layers.push(canvas);
-            this.xAxis = new XAxis(canvas);
+            this.xAxis = new XAxis(canvas, this.allLabels);
         }
         if (options['yAxis']) {
             const canvas = new Canvas(width, height, false, offset);
@@ -110,6 +110,7 @@ export class LineChart {
     setSelection(start, end) {
         this.startIndex = this.allLabels.indexOf(start);
         this.endIndex = this.allLabels.indexOf(end) + 1;
+        this.xAxis.setSelection(this.startIndex, this.endIndex);
         for (const dataset of this.datasets) {
             dataset.setRanges(this.startIndex, this.endIndex);
         }
@@ -117,6 +118,7 @@ export class LineChart {
         // for (const layer of this.layers) {
         //     layer.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         // }
+        this.xAxis.setAbsoluteValues(this.labels.length - 1, this.maxValue);
         if (sizeChanged) {
             // this.yAxis.canvas.setAbsoluteValues(this.labels.length - 1, this.maxValue);
             // this.yAxis.draw(this.labels, this.maxValue);

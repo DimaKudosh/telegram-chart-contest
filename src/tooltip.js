@@ -22,7 +22,7 @@ export default class Tooltip {
         div.style.backgroundColor = '#fff';
         const title = document.createElement('div');
         title.classList.add('telegram-chart-tooltip-title');
-        title.innerText = 'Sat, 6 Mar';
+        title.innerText = '';
         const allDatasetsContainer = document.createElement('div');
         allDatasetsContainer.classList.add('telegram-chart-tooltip-datasets-group');
         for (const dataset of this.datasets) {
@@ -68,6 +68,7 @@ export default class Tooltip {
             const container = datasetContainers[i];
             if (!dataset.isDisplayed) {
                 container.style.display = 'none';
+                i++;
                 continue;
             } else {
                 container.style.display = 'block';

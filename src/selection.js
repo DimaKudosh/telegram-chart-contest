@@ -22,7 +22,9 @@ export default class Selection {
         this.lastCursor = 'default';
         this.cursorOnCanvas = false;
 
-        this.canvasOffset = canvas.canvas.offsetLeft;
+        setTimeout(() => {
+            this.canvasOffset = canvas.canvas.getBoundingClientRect()['left'];
+        }, 300);
 
         const canvasEl = this.ctx.canvas;
         const canvasEventListener = canvasEl.addEventListener.bind(canvasEl);
@@ -73,11 +75,10 @@ export default class Selection {
     }
 
     updateTarget() {
-        const ratio = (this.chart.labels.length - 1) / this.canvasWidth,
+        const ratio = (this.chart.labels.length) / (this.canvasWidth - (this.borderWidth * 2)),
               borderWidth = this.borderWidth,
-              round = Math.round,
-              start = round((this.start - borderWidth) * ratio),
-              end = round((this.end + borderWidth) * ratio),
+              start = Math.ceil((this.start - borderWidth) * ratio),
+              end = start + (this.end - this.start) * ratio,
               lastSelection = this.lastSelection;
         if (lastSelection[0] !== start || lastSelection[1] !== end) {
             this.lastSelection = [start, end];
@@ -89,7 +90,7 @@ export default class Selection {
         const borderWidth = this.borderWidth,
               start = this.start,
               end = this.end;
-        if (start - borderWidth <= x && x <= start + borderWidth) {
+        if (start - borderWidth < x && x < start + borderWidth) {
             return RESIZE_LEFT;
         } else if (end - borderWidth <= x && x <= end + borderWidth) {
             return RESIZE_RIGHT;
@@ -99,7 +100,8 @@ export default class Selection {
     }
 
     onMouseDown(e) {
-        const x = e.offsetX - this.canvasOffset,
+        console.log(e.pageX, this.canvasOffset);
+        const x = e.pageX - this.canvasOffset,
               status = this.getStatus(x);
         this.status = status;
         if (status === DRAGGING) {
@@ -109,7 +111,7 @@ export default class Selection {
     }
 
     onMouseMove(e) {
-        const x = e.offsetX - this.canvasOffset;
+        const x = e.pageX - this.canvasOffset;
         const status = this.status;
         if (!status) {
             if (this.cursorOnCanvas) {
@@ -123,10 +125,16 @@ export default class Selection {
             end = this.end;
         switch (status) {
             case RESIZE_LEFT:
-                start = start < borderWidth ? borderWidth : x;
+                start = (start < borderWidth) ? borderWidth : x;
+                if ((end - start) < canvasWidth * 0.05) {
+                    start = end - (canvasWidth * 0.05);
+                }
                 break;
             case RESIZE_RIGHT:
-                end = end > canvasWidth ? canvasWidth : x;
+                end = (end > canvasWidth) ? canvasWidth : x;
+                if ((end - start) < canvasWidth * 0.05) {
+                    end = start + (canvasWidth * 0.05);
+                }
                 break;
             case DRAGGING: {
                 const selectionWidth = end - start;
@@ -152,6 +160,9 @@ export default class Selection {
         if (start > end) {
             end = start;
         }
+        start = (start < borderWidth) ? borderWidth : start;
+        end = (end > canvasWidth) ? canvasWidth : end;
+
         this.start = start;
         this.end = end;
         this.updateTarget();

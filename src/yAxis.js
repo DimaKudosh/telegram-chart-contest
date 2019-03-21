@@ -7,8 +7,10 @@ export default class YAxis {
         this.totalTicks = totalTicks;
         this.previousTicks = [];
         this.font = '15px Arial';
-        this.textOffset = 0;
+        this.textOffset = -5;
         this.resizeAnim = new Animation();
+
+        this.maxY = 0;
     }
 
     draw(labels, maxValue) {
@@ -20,7 +22,7 @@ export default class YAxis {
         for (let i = 0; i < totalTicks; i++) {
             const value = i * spacing;
             ticks.push(value);
-            this.canvas.putText(0 , value + this.textOffset, value.toString(), this.font);
+            this.canvas.putText(0 , value, value.toString(), this.font, 0, this.textOffset);
             this.canvas.drawLine([[0 , value], [labels.length, value]], '#eee', 1);
         }
         this.previousTicks = ticks;
@@ -39,7 +41,10 @@ export default class YAxis {
             stepY = yRatio - currentYRatio,
             textOffset = this.textOffset,
             font = this.font;
-        console.log(maxY);
+        if (this.maxY === maxY) {
+            return
+        }
+        this.maxY = maxY;
         animation.cancel();
         for (let i = 0; i < totalTicks; i++) {
             newTicks.push(i * spacing);
@@ -50,12 +55,12 @@ export default class YAxis {
             canvas.yRatio = currentYRatio + (progress * stepY);
             ctx.globalAlpha = 1 - progress;
             for (const tick of this.previousTicks) {
-                canvas.putText(0 , tick + textOffset, tick.toString(), font, 1 - progress);
+                canvas.putText(0 , tick, tick.toString(), font, 0, textOffset);
                 canvas.drawLine([[0 , tick], [labels.length, tick]], '#eee', 1);
             }
             ctx.globalAlpha = progress;
             for (const tick of newTicks) {
-                canvas.putText(0 , tick + textOffset, tick.toString(), font, progress);
+                canvas.putText(0 , tick, tick.toString(), font, 0 ,textOffset);
                 canvas.drawLine([[0 , tick], [labels.length, tick]], '#eee', 1);
             }
         }, () => {

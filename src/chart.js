@@ -2,7 +2,7 @@ import Canvas from './canvas';
 import XAxis from './xAxis';
 import YAxis from './yAxis';
 import Selection from './selection';
-import { niceScale } from './utils';
+import { niceTicks, nice_intervals } from './utils';
 import Dataset from './dataset';
 import Tooltip from './tooltip';
 import Line from './line';
@@ -88,8 +88,9 @@ export class LineChart {
     calculateMaxValue() {
         const previousMax = this.maxValue;
         const maxValue = Math.max(...this.datasets.filter(dataset => dataset.isDisplayed).map(dataset => dataset.getMax()));
-        this.maxValue = niceScale(0, maxValue, 5);
-        return previousMax !== this.maxValue;
+        const [lo, hi, spacing] = niceTicks(0, maxValue, 7, nice_intervals);
+        this.maxValue = hi;
+        return previousMax !== hi;
     }
 
     draw() {

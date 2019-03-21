@@ -3,8 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Charts</title>
+    <style>
+        .charts-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        #chart-5 {
+            height: 400px;
+        }
+    </style>
 </head>
 <body>
+    <div class="charts-container">
+        <div id="chart-5"></div>
+        <div id="chart-preview-5" style="width: 1000px; height: 150px"></div>
+        <div id="chart-legend-5"></div>
+    </div>
+
     <div class="charts-container">
         <div id="chart-1" style="width: 1000px; height: 500px"></div>
         <div id="chart-preview-1" style="width: 500px; height: 100px"></div>
@@ -21,10 +37,6 @@
     <div class="charts-container">
         <div id="chart-4" style="width: 1000px; height: 500px"></div>
         <div id="chart-preview-4" style="width: 1000px; height: 150px"></div>
-    </div>
-    <div class="charts-container">
-        <div id="chart-5" style="width: 1000px; height: 500px"></div>
-        <div id="chart-preview-5" style="width: 1000px; height: 150px"></div>
     </div>
 <script src="../dist/bundle.js"></script>
 <script src="index.js"></script>

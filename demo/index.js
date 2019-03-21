@@ -38,7 +38,7 @@ function parseChartData(chartData) {
 const chartsFile = "chart_data.json";
 loadCharts(chartsFile).then(
     (chartsData) => {
-        for (let i = 0; i < 1; i++) {
+        for (let i = 4; i < 5; i++) {
             const id = i + 1;
             const chartContainer = document.getElementById('chart-' + id);
             const previewContainer = document.getElementById('chart-preview-' + id);

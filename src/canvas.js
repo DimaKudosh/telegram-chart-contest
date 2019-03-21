@@ -74,11 +74,11 @@ export default class Canvas {
         }
     }
 
-    putText(x, y, text, font) {
+    putText(x, y, text, font, xOffset) {
         const ctx = this.ctx;
         ctx.font = font;
         [x, y] = this.translatePoint(x, y);
-        ctx.fillText(text, x, y);
+        ctx.fillText(text, x + (xOffset ? xOffset : 0), y);
     }
 
     clear() {

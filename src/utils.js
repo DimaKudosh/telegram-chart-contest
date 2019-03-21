@@ -21,12 +21,14 @@ function niceNum(range, round) {
     if (round) {
         if (fraction < 1.5) niceFraction = 1;
         else if (fraction < 3) niceFraction = 2;
+        else if (fraction < 5) niceFraction = 4;
         else if (fraction < 7) niceFraction = 5;
         else niceFraction = 10;
     } else {
         if (fraction <= 1) niceFraction = 1;
         else if (fraction <= 2) niceFraction = 2;
-        else if (fraction <= 5) niceFraction = 5;
+        else if (fraction < 5) niceFraction = 4;
+        else if (fraction <= 7) niceFraction = 5;
         else niceFraction = 10;
     }
     return niceFraction * Math.pow(10, exponent);
@@ -37,4 +39,9 @@ export function niceScale(lowerBound, upperBound, maxTicks) {
     const tickSpacing = niceNum(range / (maxTicks - 1), true);
     return Math.ceil(upperBound / tickSpacing) * tickSpacing;
 
+}
+
+export function getTickSpacing(lowerBound, upperBound, maxTicks) {
+    const range = niceNum(upperBound - lowerBound, true);
+    return niceNum(range / (maxTicks - 1), false);
 }

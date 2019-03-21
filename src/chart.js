@@ -33,7 +33,7 @@ export class LineChart {
         if (options['xAxis']) {
             const canvas = new Canvas(width, height);
             this.layers.push(canvas);
-            this.xAxis = new XAxis(canvas);
+            this.xAxis = new XAxis(canvas, this.allLabels);
         }
         if (options['yAxis']) {
             const canvas = new Canvas(width, height, false, offset);
@@ -110,6 +110,7 @@ export class LineChart {
     setSelection(start, end) {
         this.start = start;
         this.end = end;
+        this.xAxis.setSelection(this.start, this.end);
         for (const dataset of this.datasets) {
             dataset.setRanges(start, end);
         }

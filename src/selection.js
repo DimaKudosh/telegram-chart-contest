@@ -24,19 +24,24 @@ export default class Selection extends BaseUIElement {
         this.lastCursor = 'default';
         this.cursorOnCanvas = false;
 
+        // wait for element creation
         setTimeout(() => {
             this.canvasOffset = canvas.canvas.getBoundingClientRect()['left'];
         }, 300);
 
+        const document = window.document;
+        const supportTouchEvents = 'ontouchstart' in window.document.documentElement;
+
         const canvasEl = this.ctx.canvas;
         const canvasEventListener = canvasEl.addEventListener.bind(canvasEl);
-        canvasEventListener('mousedown', this.onMouseDown.bind(this));
-        canvasEventListener('mouseover', this.onMouseOver.bind(this));
-        canvasEventListener('mouseout', this.onMouseOut.bind(this));
-        const document = window.document;
+        canvasEventListener(supportTouchEvents ? 'touchstart': 'mousedown', this.onMouseDown.bind(this));
+        if (!supportTouchEvents) {
+            canvasEventListener('mouseover', this.onMouseOver.bind(this));
+            canvasEventListener('mouseout', this.onMouseOut.bind(this));
+        }
         const documentEventListener = document.addEventListener.bind(document);
-        documentEventListener('mousemove', this.onMouseMove.bind(this));
-        documentEventListener('mouseup', this.onMouseUp.bind(this));
+        documentEventListener(supportTouchEvents ? 'touchmove': 'mousemove', this.onMouseMove.bind(this));
+        documentEventListener(supportTouchEvents ? 'touchend': 'mouseup', this.onMouseUp.bind(this));
 
         this.body = document.body;
     }
@@ -99,7 +104,7 @@ export default class Selection extends BaseUIElement {
     }
 
     onMouseDown(e) {
-        const x = e.pageX - this.canvasOffset;
+        const x = (e.pageX || e.touches[0].pageX) - this.canvasOffset;
         const status = this.getStatus(x);
         this.status = status;
         if (status === DRAGGING) {
@@ -109,7 +114,7 @@ export default class Selection extends BaseUIElement {
     }
 
     onMouseMove(e) {
-        const x = e.pageX - this.canvasOffset;
+        const x = (e.pageX || e.touches[0].pageX) - this.canvasOffset;
         const status = this.status;
         if (!status) {
             if (this.cursorOnCanvas) {

@@ -1,3 +1,4 @@
+import BaseUIElement from './base';
 import Animation from './animation';
 import {timestampToString, niceTicks} from './utils';
 
@@ -5,16 +6,14 @@ import {timestampToString, niceTicks} from './utils';
 const NICE_INTERVAL = [1, 2, 3, 4, 6, 8, 10];
 
 
-export default class XAxis {
+export default class XAxis extends BaseUIElement {
     constructor(canvas, labels, options) {
-        const {font, totalTicks = 8} = options;
-        this.canvas = canvas;
-        const ctx = canvas.getCtx();
-        this.ctx = ctx;
+        super(canvas, options);
+        const ctx = this.ctx;
         ctx.textAlign = 'center';
-        if (font) ctx.font = font;
-        this.totalTicks = totalTicks;
-        this.animation = new Animation(400);
+        ctx.font = options.font;
+        ctx.fillStyle = options.color;
+        this.animation = new Animation(options.animation);
         this.indexOffset = 0.5;
         this.bottomOffset = 5;
         this.height = 25;
@@ -28,6 +27,14 @@ export default class XAxis {
         this.hideSpacing = null;
 
         this.cache = {};
+    }
+
+    updateOptions(updatedOptions) {
+        super.updateOptions(updatedOptions);
+        const {ctx, options} = this;
+        ctx.font = options.font;
+        ctx.fillStyle = options.color;
+        this.simpleDraw(this.appearSpacing);
     }
 
     setSelection(start, end) {
@@ -45,7 +52,7 @@ export default class XAxis {
     }
 
     draw(labels) {
-        const {totalTicks, appearSpacing} = this;
+        const {options: {totalTicks}, appearSpacing} = this;
         const {spacing: ticksSpacing} = niceTicks(0, labels.length, totalTicks, NICE_INTERVAL);
         if (!appearSpacing || ticksSpacing === appearSpacing) {
             this.appearSpacing = ticksSpacing;

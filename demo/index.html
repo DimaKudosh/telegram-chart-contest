@@ -4,29 +4,59 @@
     <meta charset="UTF-8">
     <title>Charts</title>
     <style>
-        .charts-container {
+        .night-mode {
+            background-color: #242f3e !important;
+        }
+        .night-mode .btn {
+            color: #36a8f1;
+        }
+        .chart-containers {
             max-width: 1000px;
+            margin: 0 auto 20px auto;
+        }
+        .btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+        .btn {
+            display: block;
             margin: 0 auto;
+            color: #108be3;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            cursor: pointer;
+            outline: none;
         }
     </style>
 </head>
 <body>
-    <div class="charts-container">
+<div class="chart-containers">
+    <div class="chart-container">
         <div id="chart-5"></div>
     </div>
 
-    <div class="charts-container">
+    <div class="chart-container">
         <div id="chart-1"></div>
     </div>
-    <div class="charts-container">
+    <div class="chart-container">
         <div id="chart-2"></div>
     </div>
-    <div class="charts-container">
+    <div class="chart-container">
         <div id="chart-3"></div>
     </div>
-    <div class="charts-container">
+    <div class="chart-container">
         <div id="chart-4"></div>
     </div>
+</div>
+<div id="btn-container" class="btn-container">
+    <button id="switch-mode-btn" class="btn">Switch to night mode</button>
+</div>
 <script src="../dist/bundle.js"></script>
 <script src="index.js"></script>
 </body>

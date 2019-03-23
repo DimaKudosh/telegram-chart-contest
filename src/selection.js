@@ -1,15 +1,16 @@
+import BaseUIElement from './base';
+
+
 const RESIZE_LEFT = 'l';
 const RESIZE_RIGHT = 'r';
 const DRAGGING = 'd';
 
 
-export default class Selection {
+export default class Selection extends BaseUIElement {
     constructor(canvas, target, options) {
-        this.options = options;
+        super(canvas, options);
         this.target = target;
         this.totalLabels = target.allLabels.length;
-        this.canvas = canvas;
-        this.ctx = canvas.getCtx();
         this.canvasHeight = canvas.height;
         this.canvasWidth = canvas.width;
 
@@ -38,6 +39,11 @@ export default class Selection {
         documentEventListener('mouseup', this.onMouseUp.bind(this));
 
         this.body = document.body;
+    }
+
+    updateOptions(options) {
+        super.updateOptions(options);
+        this.draw();
     }
 
     draw() {
@@ -73,8 +79,8 @@ export default class Selection {
     updateTarget() {
         const {totalLabels, canvasWidth, borderWidth, start, end, lastSelection} = this;
         const ratio = totalLabels / (canvasWidth - (borderWidth * 2));
-        const startIndex = Math.ceil((start - borderWidth) * ratio);
-        const endIndex = start + (end - start) * ratio;
+        const startIndex = Math.round((start - borderWidth) * ratio);
+        const endIndex = startIndex + (end - start) * ratio;
         if (lastSelection[0] !== startIndex || lastSelection[1] !== endIndex) {
             this.lastSelection = [startIndex, endIndex];
             this.target.setSelection(startIndex, endIndex);

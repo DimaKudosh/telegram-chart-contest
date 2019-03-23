@@ -8,19 +8,25 @@ export const DEFAULT_OPTIONS = {
         font: font,
         totalTicks: 6,
         animation: 250,
-        underlineColor: 'green',
+        color: '#96a2aa',
+        underlineColor: '#f2f4f5',
     },
     xAxis: {
         display: true,
         font: font,
         totalTicks: 8,
+        color: '#96a2aa',
+        animation: 400,
     },
     legend: {
         display: true,
+        borderColor: '#344658',
+        textColor: '#000',
     },
     tooltip: {
         display: true,
-        color: 'green',
+        textColor: '#000',
+        color: '#dfe6eb',
         backgroundColor: '#fff',
     },
     selection: {
@@ -46,9 +52,9 @@ export const DEFAULT_OPTIONS = {
         },
         selection: {
             display: true,
-            backgroundAlpha: 0.1,
-            backgroundColor: 'black',
-            borderColor: 'blue',
+            backgroundAlpha: 0.75,
+            backgroundColor: '#f5f9fb',
+            borderColor: '#ddeaf3',
         },
         preview: {
             display: false,

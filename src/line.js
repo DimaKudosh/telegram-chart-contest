@@ -1,10 +1,10 @@
+import BaseUIElement from './base';
 import Animation from './animation';
 
 
-export default class Line {
-    constructor(canvas, dataset) {
-        this.canvas = canvas;
-        this.ctx = canvas.getCtx();
+export default class Line extends BaseUIElement {
+    constructor(canvas, dataset, options) {
+        super(canvas, options);
         this.dataset = dataset;
         this.color = dataset.color;
 

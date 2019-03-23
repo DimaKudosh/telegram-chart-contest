@@ -7,7 +7,7 @@ $animation: linear;
 
 .telegram-chart-legend-checkbox {
   display: inline-block;
-  border: 2px solid #ccc;
+  border: 2px solid #e6ecf0;
   border-radius: $size;
   padding: (0.2 * $size) (0.4 * $size);
   margin-right: 10px;
@@ -34,7 +34,7 @@ $animation: linear;
         height: $size;
         border-radius: $size;
         background: transparent;
-        border: 2px solid #9E9E9E;
+        border: 2px solid #e6ecf0;
         cursor: pointer;
         transition: border 250ms $animation;
       }

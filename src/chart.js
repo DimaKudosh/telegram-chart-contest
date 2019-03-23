@@ -56,10 +56,7 @@ export class LineChart {
         this.lines = this.datasets.map((dataset) => {
             const canvas = new Canvas(width, height, offsets);
             layers.push(canvas);
-            return new Line(
-                canvas,
-                dataset,
-            );
+            return new Line(canvas, dataset, {});
         });
 
         if (options.selection.display) {
@@ -103,6 +100,18 @@ export class LineChart {
         div.style.width = width + 'px';
         div.style.height = height + 'px';
         return div;
+    }
+
+    updateOptions(options) {
+        const newOptions = {...this.options, ...options};
+        const {tooltip, xAxis, yAxis, selection, legend, preview} = this;
+        if (tooltip) tooltip.updateOptions(newOptions.tooltip);
+        if (xAxis) xAxis.updateOptions(newOptions.xAxis);
+        if (yAxis) yAxis.updateOptions(newOptions.yAxis);
+        if (selection) selection.updateOptions(newOptions.selection);
+        if (legend) legend.updateOptions(newOptions.legend);
+        if (preview) preview.updateOptions(newOptions.preview);
+        this.options = newOptions
     }
 
     calculateMaxValue() {

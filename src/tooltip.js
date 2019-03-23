@@ -1,20 +1,25 @@
+import BaseUIElement from './base';
 import {tooltipTimestampToString} from './utils';
 
 
-export default class Tooltip {
+export default class Tooltip extends BaseUIElement {
     constructor(canvas, chart, options) {
-        this.canvas = canvas;
+        super(canvas, options);
         this.labels = chart.labels;
         this.datasets = chart.datasets;
         this.maxValue = chart.maxValue;
         this.chart = chart;
         this.cache = {};
-        this.options = options;
 
         canvas.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
         canvas.canvas.addEventListener('mouseout', this.onMouseOut.bind(this), true);
         [this.mainContainer, this.title, this.containers, this.values] = this.create();
         this.offsetX = 25;
+    }
+
+    updateOptions(options) {
+        super.updateOptions(options);
+        this.title.style.color = options.textColor;
     }
 
     create() {
@@ -23,7 +28,7 @@ export default class Tooltip {
         const title = document.createElement('div');
         title.classList.add('telegram-chart-tooltip-title');
         const allDatasetsContainers = document.createElement('div');
-        allDatasetsContainers.classList.add('telegram-chart-tooltip-datasets-group');
+        allDatasetsContainers.classList.add('telegram-chart-tooltip-group');
 
         const datasetContainers = [];
         const datasetValues = [];
@@ -35,11 +40,11 @@ export default class Tooltip {
             datasetContainers.push(datasetContainer);
 
             const value = document.createElement('div');
-            value.classList.add('telegram-chart-tooltip-dataset-value');
+            value.classList.add('telegram-chart-tooltip-value');
             datasetValues.push(value);
 
             const name = document.createElement('div');
-            name.classList.add('telegram-chart-tooltip-dataset-name');
+            name.classList.add('telegram-chart-tooltip-name');
             name.innerText = dataset.name;
             datasetContainer.appendChild(value);
             datasetContainer.appendChild(name);
@@ -61,14 +66,14 @@ export default class Tooltip {
     }
 
     onMouseMove(e) {
-        const {canvas, labels, datasets, options} = this;
+        const {canvas, chart: {labels}, datasets, options} = this;
         this.mainContainer.style.display = 'block';
         this.mainContainer.style.backgroundColor = this.options.backgroundColor;
         const x = e.offsetX - canvas.canvas.offsetLeft;
         const index = Math.floor((x / canvas.width) * labels.length);
-        this.title.textContent = tooltipTimestampToString(labels[index]);
+        this.title.textContent = this.renderLabel(labels[index]);
         canvas.clear();
-        canvas.drawLine([[index, 0], [index, this.maxValue]], options.color, 1);
+        canvas.drawLine([[index, 0], [index, this.maxValue]], options.color, 2);
         for (let i = 0; i < datasets.length; i++) {
             const dataset = datasets[i];
             const container = this.containers[i];

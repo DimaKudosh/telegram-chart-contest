@@ -1,47 +1,47 @@
-.telegram-chart-container {
-    position: relative;
+.telegram-chart {
+    &-container {
+        position: relative;
+        overflow-x: hidden;
+        margin-bottom: 50px;
 
-    canvas {
+        canvas {
+            position: absolute;
+        }
+    }
+
+    &-legend {
+        margin-bottom: 50px;
+    }
+
+    &-top-layer {
+        z-index: 1;
+    }
+
+    &-tooltip {
+        display: none;
         position: absolute;
+        padding: 10px;
+        box-shadow: 0 0 3px #ccc;
+        border-radius: 4px;
+        z-index: 1001;
+        pointer-events: none;
+
+        &-title {
+            font-size: 16px;
+        }
+
+        &-group {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        &-dataset {
+            margin-right: 7px;
+        }
+
+        &-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
     }
 }
-
-.telegram-chart-top-layer {
-    z-index: 1;
-}
-
-.telegram-chart-tooltip {
-    display: none;
-    position: absolute;
-    padding: 10px;
-    box-shadow: 0 0 3px #ccc;
-    border-radius: 4px;
-    z-index: 1001;
-    pointer-events: none;
-}
-
-.telegram-chart-tooltip-title {
-    font-size: 16px;
-}
-
-.telegram-chart-tooltip-datasets-group {
-    display: flex;
-    justify-content: space-between;
-}
-
-.telegram-chart-tooltip-dataset {
-    margin-right: 7px;
-}
-
-.telegram-chart-tooltip-dataset-value {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.telegram-chart-tooltip-dataset-name {
-}
-
-.telegram-chart-tooltip-legend {
-
-}
-

@@ -1,25 +1,27 @@
+import BaseUIElement from './base';
 import Animation from './animation';
 
 
-export default class YAxis {
+export default class YAxis extends BaseUIElement {
     constructor(canvas, options) {
-        this.options = options;
-        const ctx = canvas.getCtx();
-        this.canvas = canvas;
-        this.ctx = ctx;
-        const {font, totalTicks} = options;
-        this.totalTicks = totalTicks;
+        super(canvas, options);
         this.previousTicks = [];
-        ctx.font = font;
+        this.ctx.font = this.options.font;
         this.textOffset = -5;
-
         this.animation = new Animation(options.animation);
-
         this.maxY = 0;
+
+        this.lastDrawn = null;
+    }
+
+    updateOptions(options) {
+        super.updateOptions(options);
+        this.canvas.clear();
+        this.drawTicks(...this.lastDrawn);
     }
 
     draw(labels, maxValue) {
-        const {canvas, totalTicks} = this;
+        const {canvas, options: {totalTicks}} = this;
         const spacing = maxValue / (totalTicks - 1);
         const ticks = [];
         canvas.clear();
@@ -34,7 +36,7 @@ export default class YAxis {
         if (this.maxY === maxY) {
             return;
         }
-        const {animation, totalTicks, ctx, canvas} = this;
+        const {animation, options: {totalTicks}, ctx, canvas} = this;
         const spacing = maxY / (totalTicks - 1);
         const newTicks = [];
         const xRatio = canvas.computeXRatio(labels.length - 1);
@@ -59,10 +61,12 @@ export default class YAxis {
     }
 
     drawTicks(labels, ticks) {
-        const canvas = this.canvas;
+        const {canvas, ctx, options} = this;
         for (const tick of ticks) {
+            ctx.fillStyle = options.color;
             canvas.putText(0, tick, tick.toString(), 0, this.textOffset);
-            canvas.drawLine([[0, tick], [labels.length, tick]], this.options.underlineColor, 1);
+            canvas.drawLine([[0, tick], [labels.length, tick]], options.underlineColor, 2);
         }
+        this.lastDrawn = [labels, ticks];
     }
 }

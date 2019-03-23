@@ -2,11 +2,10 @@ import Animation from './animation';
 
 
 export default class Line {
-    constructor(canvas, dataset, labels) {
+    constructor(canvas, dataset) {
         this.canvas = canvas;
+        this.ctx = canvas.getCtx();
         this.dataset = dataset;
-        this.name = dataset.name;
-        this.labels = labels;
         this.color = dataset.color;
 
         this.isDisplayed = false;
@@ -20,12 +19,9 @@ export default class Line {
     }
 
     animate() {
-        const animation = this.animation,
-            points = this.points,
-            callbacks = this.callbacks,
-            canvas = this.canvas;
+        const {animation, points, callbacks, canvas, ctx} = this;
         animation.cancel();
-        animation.run(canvas.ctx, (progress) => {
+        animation.run(ctx, (progress) => {
             canvas.clear();
             for (const callback of callbacks) {
                 callback(progress);
@@ -36,12 +32,11 @@ export default class Line {
     }
 
     animatedResize(maxX, maxY) {
-        const canvas = this.canvas,
-            xRatio = canvas.computeXRatio(maxX),
-            yRatio = canvas.computeYRatio(maxY),
-            currentYRatio = canvas.yRatio,
-            stepY = yRatio - currentYRatio;
-        canvas.xRatio = xRatio;
+        const canvas = this.canvas;
+        const yRatio = canvas.computeYRatio(maxY);
+        const currentYRatio = canvas.yRatio;
+        const stepY = yRatio - currentYRatio;
+        canvas.xRatio = canvas.computeXRatio(maxX);
         this.callbacks.push((progress) => {
             canvas.yRatio = currentYRatio + (progress * stepY);
         });
@@ -49,9 +44,7 @@ export default class Line {
     }
 
     appear() {
-        const canvas = this.canvas,
-            ctx = canvas.ctx,
-            step = 1 - ctx.globalAlpha;
+        const ctx = this.ctx;
         this.callbacks.push((progress) => {
             ctx.globalAlpha = progress;
         });
@@ -59,9 +52,7 @@ export default class Line {
     }
 
     hide() {
-        const canvas = this.canvas,
-            ctx = canvas.ctx,
-            step = ctx.globalAlpha - 1;
+        const ctx = this.ctx;
         this.callbacks.push((progress) => {
             ctx.globalAlpha = 1 - progress;
         });
@@ -76,18 +67,9 @@ export default class Line {
     }
 
     draw() {
-        // if (!this.dataset.isDisplayed) {
-        //     if (this.isDisplayed) {
-        //         this.hide();
-        //     }
-        //     return;
-        // }
-        // if (this.isDisplayed) {
-            this.canvas.clear();
-            this.canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
-        // } else {
-        //     this.appear();
-        // }
+        const canvas = this.canvas;
+        canvas.clear();
+        canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
         this.isDisplayed = true;
     }
 }

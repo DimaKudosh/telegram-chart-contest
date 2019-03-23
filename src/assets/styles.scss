@@ -1,8 +1,17 @@
+.telegram-chart-container {
+    position: relative;
+
+    canvas {
+        position: absolute;
+    }
+}
+
 .telegram-chart-top-layer {
     z-index: 1;
 }
 
 .telegram-chart-tooltip {
+    display: none;
     position: absolute;
     padding: 10px;
     box-shadow: 0 0 3px #ccc;

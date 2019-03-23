@@ -1,35 +1,33 @@
 import Animation from './animation';
-import {timestampToString, getTickSpacing, niceTicks, int_intervals, nice_intervals} from './utils';
+import {timestampToString, niceTicks} from './utils';
+
+
+const NICE_INTERVAL = [1, 2, 3, 4, 6, 8, 10];
 
 
 export default class XAxis {
-    constructor(canvas, labels, totalTicks=7) {
+    constructor(canvas, labels, options) {
+        const {font, totalTicks = 8} = options;
         this.canvas = canvas;
-        this.ctx = canvas.ctx;
-        this.ctx.textAlign = "center";
+        const ctx = canvas.getCtx();
+        this.ctx = ctx;
+        ctx.textAlign = 'center';
+        if (font) ctx.font = font;
         this.totalTicks = totalTicks;
-        this.animation = new Animation(2500);
+        this.animation = new Animation(400);
+        this.indexOffset = 0.5;
+        this.bottomOffset = 5;
+        this.height = 25;
 
         this.allLabels = labels;
 
         this.start = 0;
         this.end = labels.length;
 
-        this.previousIndexes = [];
-        this.ticksShouldAppear = [];
-        this.lastSize = this.end - this.start;
-        this.animationRunning = false;
+        this.appearSpacing = null;
+        this.hideSpacing = null;
 
         this.cache = {};
-    }
-
-    renderLabel(value) {
-        let val = this.cache[value];
-        if (!val) {
-            val = timestampToString(value);
-            this.cache[value] = val;
-        }
-        return val;
     }
 
     setSelection(start, end) {
@@ -42,67 +40,75 @@ export default class XAxis {
     }
 
     clear() {
-        this.ctx.clearRect(0, this.canvas.height - 25, this.canvas.width, 25);
+        const {canvas, height} = this;
+        this.ctx.clearRect(0, canvas.height - height, canvas.width, height);
     }
 
     draw(labels) {
-        const animation = new Animation();
-        const font = '15px Arial';
-        this.clear();
-        const [low, high, ticksSpacing] = niceTicks(0, labels.length, 6,  nice_intervals);
-        const size = labels.length;
-        const offset = -this.start * this.canvas.xRatio;
-        if (this.lastSize !== size) {
-            this.lastSize = size;
-            const ticks = [];
-            const newTicks = [];
-            for (let i = 0; i < this.allLabels.length / ticksSpacing; i++) {
-                const index = Math.floor(i * ticksSpacing);
-                if (this.previousIndexes.indexOf(index) === -1) {
-                    newTicks.push(index);
-                    continue;
-                }
-                ticks.push(index);
-            }
-            const ticksForRemoving = this.previousIndexes.filter((tick) => {return ticks.indexOf(tick) === -1});
-
-            // animation.cancel();
-            animation.run(this.canvas.ctx, (progress) => {
-                this.clear();
-                this.canvas.ctx.save();
-                const offset = -this.start * this.canvas.xRatio;
-                this.canvas.ctx.globalAlpha = progress;
-                for (const index of newTicks) {
-                    const tick = this.allLabels[index];
-                    this.canvas.putText(index, 15, this.renderLabel(tick).toString(), font, offset);
-                }
-                this.canvas.ctx.globalAlpha = 1 - progress;
-                for (const index of ticksForRemoving) {
-                    const tick = this.allLabels[index];
-                    this.canvas.putText(index, 15, this.renderLabel(tick).toString(), font, offset);
-                }
-                this.canvas.ctx.restore();
-                // for (const index of ticks) {
-                //     const tick = this.allLabels[index];
-                //     this.canvas.putText(index, 15, this.renderLabel(tick).toString(), font, offset);
-                // }
-            }, () => {
-                this.animationRunning = false;
-                this.previousIndexes = ticks;
-            });
-
-            this.animationRunning = true;
-
-
+        const {totalTicks, appearSpacing} = this;
+        const {spacing: ticksSpacing} = niceTicks(0, labels.length, totalTicks, NICE_INTERVAL);
+        if (!appearSpacing || ticksSpacing === appearSpacing) {
+            this.appearSpacing = ticksSpacing;
+            this.simpleDraw(ticksSpacing);
             return;
         }
-        let ticks = [];
-        for (let i = 0; i < this.allLabels.length / ticksSpacing; i++) {
-            const index = Math.floor(i * ticksSpacing);
-            ticks.push(index);
-            const tick = this.allLabels[index];
-            this.canvas.putText(index, 15, this.renderLabel(tick).toString(), font, offset);
+        this.hideSpacing = appearSpacing;
+        this.appearSpacing = ticksSpacing;
+        this.runAnimatedDraw();
+    }
+
+    simpleDraw(ticksSpacing) {
+        this.clear();
+        const indexes = [];
+        for (let i = this.indexOffset; i < this.allLabels.length / ticksSpacing; i++) {
+            indexes.push(Math.floor(i * ticksSpacing));
         }
-        this.previousIndexes = ticks;
+        this.drawLabels(indexes);
+    }
+
+    runAnimatedDraw() {
+        const {animation, ctx, indexOffset} = this;
+        if (animation.isRunning) {
+            return;
+        }
+        animation.run(ctx, (progress) => {
+            this.clear();
+            const {allLabels, appearSpacing, hideSpacing} = this;
+            const allAppearIndexes = new Set(),
+                allHideIndexes = new Set(),
+                labelsLength = allLabels.length;
+            for (let i = indexOffset; i < labelsLength / appearSpacing; i++) {
+                allAppearIndexes.add(Math.floor(i * appearSpacing));
+            }
+            for (let i = indexOffset; i < labelsLength / hideSpacing; i++) {
+                allHideIndexes.add(Math.floor(i * hideSpacing));
+            }
+            const sameIndexes = new Set([...allAppearIndexes].filter(i => allHideIndexes.has(i))),
+                appearIndexes = new Set([...allAppearIndexes].filter(i => !sameIndexes.has(i))),
+                hideIndexes = new Set([...allHideIndexes].filter(i => !sameIndexes.has(i)));
+            this.drawLabels(sameIndexes);
+            ctx.globalAlpha = progress;
+            this.drawLabels(appearIndexes);
+            ctx.globalAlpha = 1 - progress;
+            this.drawLabels(hideIndexes);
+        });
+    }
+
+    drawLabels(indexes) {
+        const canvas = this.canvas;
+        const offset = -this.start * canvas.xRatio;
+        for (const index of indexes) {
+            const tick = this.allLabels[index];
+            canvas.putText(index, 0, this.renderLabel(tick), offset, -this.bottomOffset);
+        }
+    }
+
+    renderLabel(value) {
+        let val = this.cache[value];
+        if (!val) {
+            val = timestampToString(value).toString();
+            this.cache[value] = val;
+        }
+        return val;
     }
 }

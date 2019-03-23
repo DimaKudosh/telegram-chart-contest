@@ -1,21 +1,22 @@
-const RESIZE_LEFT = 'l',
-    RESIZE_RIGHT = 'r',
-    DRAGGING = 'd';
+const RESIZE_LEFT = 'l';
+const RESIZE_RIGHT = 'r';
+const DRAGGING = 'd';
 
 
 export default class Selection {
-    constructor(canvas, chart, options) {
-        this.chart = chart;
-        this.target = options['target'];
+    constructor(canvas, target, options) {
+        this.options = options;
+        this.target = target;
+        this.totalLabels = target.allLabels.length;
         this.canvas = canvas;
-        this.ctx = canvas.ctx;
+        this.ctx = canvas.getCtx();
         this.canvasHeight = canvas.height;
         this.canvasWidth = canvas.width;
 
         this.borderWidth = 5;
         this.start = this.borderWidth;
         this.end = this.canvasWidth - this.borderWidth;
-        this.lastSelection = [0, chart.labels.length - 1];
+        this.lastSelection = [0, this.totalLabels - 1];
 
         this.status = null;
         this.lastX = null;
@@ -40,20 +41,15 @@ export default class Selection {
     }
 
     draw() {
-        const canvas = this.canvas,
-              ctx = canvas.ctx,
-              start = this.start,
-              end = this.end,
-              borderWidth = this.borderWidth,
-              canvasWidth = this.canvasWidth,
-              canvasHeight = this.canvasHeight;
+        const {canvas, ctx, start, end, borderWidth, canvasWidth, canvasHeight, options} = this;
         canvas.clear();
-        ctx.fillStyle = 'black';
-        ctx.globalAlpha = 0.1;
+        ctx.save();
+        ctx.fillStyle = options.backgroundColor;
+        ctx.globalAlpha = options.backgroundAlpha;
         ctx.fillRect(0, 0, start - borderWidth, canvasHeight);
         ctx.fillRect(end + borderWidth, 0, canvasWidth - end + borderWidth, canvasHeight);
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = 'blue';
+        ctx.restore();
+        ctx.strokeStyle = options.borderColor;
         ctx.lineWidth = borderWidth * 2;
         ctx.strokeRect(start, 0, end - start, canvasHeight);
     }
@@ -75,21 +71,18 @@ export default class Selection {
     }
 
     updateTarget() {
-        const ratio = (this.chart.labels.length) / (this.canvasWidth - (this.borderWidth * 2)),
-              borderWidth = this.borderWidth,
-              start = Math.ceil((this.start - borderWidth) * ratio),
-              end = start + (this.end - this.start) * ratio,
-              lastSelection = this.lastSelection;
-        if (lastSelection[0] !== start || lastSelection[1] !== end) {
-            this.lastSelection = [start, end];
-            this.target.setSelection(start, end);
+        const {totalLabels, canvasWidth, borderWidth, start, end, lastSelection} = this;
+        const ratio = totalLabels / (canvasWidth - (borderWidth * 2));
+        const startIndex = Math.ceil((start - borderWidth) * ratio);
+        const endIndex = start + (end - start) * ratio;
+        if (lastSelection[0] !== startIndex || lastSelection[1] !== endIndex) {
+            this.lastSelection = [startIndex, endIndex];
+            this.target.setSelection(startIndex, endIndex);
         }
     }
 
     getStatus(x) {
-        const borderWidth = this.borderWidth,
-              start = this.start,
-              end = this.end;
+        const {borderWidth, start, end} = this;
         if (start - borderWidth < x && x < start + borderWidth) {
             return RESIZE_LEFT;
         } else if (end - borderWidth <= x && x <= end + borderWidth) {
@@ -100,9 +93,8 @@ export default class Selection {
     }
 
     onMouseDown(e) {
-        console.log(e.pageX, this.canvasOffset);
-        const x = e.pageX - this.canvasOffset,
-              status = this.getStatus(x);
+        const x = e.pageX - this.canvasOffset;
+        const status = this.getStatus(x);
         this.status = status;
         if (status === DRAGGING) {
             this.lastX = x;
@@ -119,43 +111,42 @@ export default class Selection {
             }
             return;
         }
-        const borderWidth = this.borderWidth,
-              canvasWidth = this.canvasWidth - borderWidth;
-        let start = this.start,
-            end = this.end;
+        const borderWidth = this.borderWidth;
+        const canvasWidth = this.canvasWidth - borderWidth;
+        let {start, end} = this;
         switch (status) {
-            case RESIZE_LEFT:
-                start = (start < borderWidth) ? borderWidth : x;
-                if ((end - start) < canvasWidth * 0.05) {
-                    start = end - (canvasWidth * 0.05);
-                }
-                break;
-            case RESIZE_RIGHT:
-                end = (end > canvasWidth) ? canvasWidth : x;
-                if ((end - start) < canvasWidth * 0.05) {
-                    end = start + (canvasWidth * 0.05);
-                }
-                break;
-            case DRAGGING: {
-                const selectionWidth = end - start;
-                let diff = x - this.lastX;
-                this.lastX = x;
-                if (diff < 0) {
-                    start += diff;
-                    if (start < borderWidth) {
-                        start = borderWidth;
-                    }
-                    end = start + selectionWidth;
-                }
-                if (diff > 0) {
-                    end += diff;
-                    if (end > canvasWidth) {
-                        end = canvasWidth;
-                    }
-                    start = end - selectionWidth;
-                }
-                break;
+        case RESIZE_LEFT:
+            start = (start < borderWidth) ? borderWidth : x;
+            if ((end - start) < canvasWidth * 0.05) {
+                start = end - (canvasWidth * 0.05);
             }
+            break;
+        case RESIZE_RIGHT:
+            end = (end > canvasWidth) ? canvasWidth : x;
+            if ((end - start) < canvasWidth * 0.05) {
+                end = start + (canvasWidth * 0.05);
+            }
+            break;
+        case DRAGGING: {
+            const selectionWidth = end - start;
+            let diff = x - this.lastX;
+            this.lastX = x;
+            if (diff < 0) {
+                start += diff;
+                if (start < borderWidth) {
+                    start = borderWidth;
+                }
+                end = start + selectionWidth;
+            }
+            if (diff > 0) {
+                end += diff;
+                if (end > canvasWidth) {
+                    end = canvasWidth;
+                }
+                start = end - selectionWidth;
+            }
+            break;
+        }
         }
         if (start > end) {
             end = start;

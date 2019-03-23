@@ -38,30 +38,12 @@ function parseChartData(chartData) {
 const chartsFile = "chart_data.json";
 loadCharts(chartsFile).then(
     (chartsData) => {
-        for (let i = 4; i < 5; i++) {
+        for (let i = 0; i < 5; i++) {
             const id = i + 1;
             const chartContainer = document.getElementById('chart-' + id);
-            const previewContainer = document.getElementById('chart-preview-' + id);
-            const legendContainer = document.getElementById('chart-legend-' + id);
             const [labels, datasets] = parseChartData(chartsData[i]);
             try {
-                const chartOptions = {
-                    'xAxis': true,
-                    'yAxis': true,
-                    'tooltip': true,
-                    'legend': {
-                        'container': legendContainer
-                    }
-                };
-                const chart = new LineChart(chartContainer, labels, datasets, chartOptions);
-                const previewOptions = {
-                'xAxis': false,
-                'yAxis': false,
-                'selection': {
-                    'target': chart
-                }
-            };
-                const previewChart = new LineChart(previewContainer, labels, datasets, previewOptions);
+                const chart = new LineChart(chartContainer, labels, datasets, {});
             } catch (e) {
                 console.log(e);
             }

@@ -7,6 +7,7 @@
     "dev": "rollup -w -c rollup.config.js",
     "build": "rollup -c rollup.config.js --environment ENV:production",
     "lint": "eslint src/**/*.js",
+    "lint-fix": "eslint src/**/*.js --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

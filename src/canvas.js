@@ -1,5 +1,5 @@
 export default class Canvas {
-    constructor(width, height, isTopLayer=false, offsets={'left': 0, 'right': 0, 'top': 0, 'bottom': 0}) {
+    constructor(width, height, offsets, isTopLayer=false) {
         this.width = width;
         this.height = height;
         this.offsets = offsets;
@@ -17,19 +17,22 @@ export default class Canvas {
         const canvas = document.createElement('canvas');
         canvas.width = this.width;
         canvas.height = this.height;
-        canvas.style.position = 'absolute';
         canvas.addEventListener('dragstart', function(e) { e.preventDefault(); });
         return canvas;
     }
 
+    getCtx() {
+        return this.ctx;
+    }
+
     computeXRatio(maxX) {
         const offsets = this.offsets;
-        return (this.width - offsets['left'] - offsets['right']) / maxX;
+        return (this.width - offsets.left - offsets.right) / maxX;
     }
 
     computeYRatio(maxY) {
         const offsets = this.offsets;
-        return (this.height - offsets['top'] - offsets['bottom']) / maxY;
+        return (this.height - offsets.top - offsets.bottom) / maxY;
     }
 
     setAbsoluteValues(maxX, maxY) {
@@ -38,9 +41,9 @@ export default class Canvas {
     }
 
     translatePoint(x, y) {
-        const offsets = this.offsets,
-              yOffset = offsets.bottom,
-              xOffset = offsets.left;
+        const offsets = this.offsets;
+        const yOffset = offsets.bottom;
+        const xOffset = offsets.left;
         y = ~~(this.height - y * this.yRatio + 0.5) - yOffset;
         x = ~~(x * this.xRatio + 0.5) + xOffset;
         return [x, y];
@@ -74,19 +77,19 @@ export default class Canvas {
         }
     }
 
-    putText(x, y, text, font, xOffset, yOffset) {
+    putText(x, y, text, xOffset, yOffset) {
         const ctx = this.ctx;
-        ctx.font = font;
         [x, y] = this.translatePoint(x, y);
         ctx.fillText(text, x + (xOffset ? xOffset : 0), y + (yOffset ? yOffset : 0));
     }
 
-    clear() {
-        this.ctx.clearRect(0, 0, this.width, this.height);
+    drawImage(img, x, y, xOffset, yOffset) {
+        const ctx = this.ctx;
+        [x, y] = this.translatePoint(x, y);
+        ctx.drawImage(img, x + (xOffset ? xOffset : 0), y + (yOffset ? yOffset : 0));
     }
 
-    clearRegion(x, y, w, h) {
-        [x, y] = this.translatePoint(x, y);
-        this.ctx.clearRect(x, y, w || this.width, h || this.height);
+    clear() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
     }
 }

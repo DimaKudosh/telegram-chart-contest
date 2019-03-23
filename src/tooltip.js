@@ -2,47 +2,53 @@ import {tooltipTimestampToString} from './utils';
 
 
 export default class Tooltip {
-    constructor(canvas, chart) {
+    constructor(canvas, chart, options) {
         this.canvas = canvas;
         this.labels = chart.labels;
         this.datasets = chart.datasets;
         this.maxValue = chart.maxValue;
         this.chart = chart;
         this.cache = {};
+        this.options = options;
 
-        this.canvas.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
-        this.canvas.canvas.addEventListener('mouseout', this.onMouseOut.bind(this), true);
-        this.container = this.create();
+        canvas.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
+        canvas.canvas.addEventListener('mouseout', this.onMouseOut.bind(this), true);
+        [this.mainContainer, this.title, this.containers, this.values] = this.create();
         this.offsetX = 25;
     }
 
     create() {
         const div = document.createElement('div');
         div.classList.add('telegram-chart-tooltip');
-        div.style.backgroundColor = '#fff';
         const title = document.createElement('div');
         title.classList.add('telegram-chart-tooltip-title');
-        title.innerText = '';
-        const allDatasetsContainer = document.createElement('div');
-        allDatasetsContainer.classList.add('telegram-chart-tooltip-datasets-group');
+        const allDatasetsContainers = document.createElement('div');
+        allDatasetsContainers.classList.add('telegram-chart-tooltip-datasets-group');
+
+        const datasetContainers = [];
+        const datasetValues = [];
+
         for (const dataset of this.datasets) {
             const datasetContainer = document.createElement('div');
             datasetContainer.classList.add('telegram-chart-tooltip-dataset');
             datasetContainer.style.color = dataset.color;
+            datasetContainers.push(datasetContainer);
+
             const value = document.createElement('div');
             value.classList.add('telegram-chart-tooltip-dataset-value');
-            value.textContent = '0';
+            datasetValues.push(value);
+
             const name = document.createElement('div');
             name.classList.add('telegram-chart-tooltip-dataset-name');
             name.innerText = dataset.name;
             datasetContainer.appendChild(value);
             datasetContainer.appendChild(name);
-            allDatasetsContainer.appendChild(datasetContainer);
+            allDatasetsContainers.appendChild(datasetContainer);
         }
         div.appendChild(title);
-        div.appendChild(allDatasetsContainer);
+        div.appendChild(allDatasetsContainers);
         this.chart.container.appendChild(div);
-        return div;
+        return [div, title, datasetContainers, datasetValues];
     }
 
     renderLabel(label) {
@@ -55,33 +61,31 @@ export default class Tooltip {
     }
 
     onMouseMove(e) {
-        this.container.style.display = 'block';
-        const x = e.offsetX - this.canvas.canvas.offsetLeft;
-        const index = Math.floor((x / this.canvas.width) * this.chart.labels.length);
-        this.container.querySelector('.telegram-chart-tooltip-title').textContent = tooltipTimestampToString(this.chart.labels[index]);
-        this.canvas.clear();
-        this.canvas.drawLine([[index, 0], [index, this.maxValue]], '#eee', 1);
-        const datasetElements = this.container.querySelectorAll('.telegram-chart-tooltip-dataset-value');
-        const datasetContainers = this.container.querySelectorAll('.telegram-chart-tooltip-dataset');
-        let i = 0;
-        for (const dataset of this.datasets) {
-            const container = datasetContainers[i];
+        const {canvas, labels, datasets, options} = this;
+        this.mainContainer.style.display = 'block';
+        this.mainContainer.style.backgroundColor = this.options.backgroundColor;
+        const x = e.offsetX - canvas.canvas.offsetLeft;
+        const index = Math.floor((x / canvas.width) * labels.length);
+        this.title.textContent = tooltipTimestampToString(labels[index]);
+        canvas.clear();
+        canvas.drawLine([[index, 0], [index, this.maxValue]], options.color, 1);
+        for (let i = 0; i < datasets.length; i++) {
+            const dataset = datasets[i];
+            const container = this.containers[i];
             if (!dataset.isDisplayed) {
                 container.style.display = 'none';
-                i++;
                 continue;
             } else {
                 container.style.display = 'block';
             }
-            datasetElements[i].textContent = dataset.data[index];
-            i++;
-            this.canvas.drawArc(index, dataset.data[index], 4, dataset.color, 4, '#fff');
+            this.values[i].textContent = dataset.data[index];
+            this.canvas.drawArc(index, dataset.data[index], 4, dataset.color, 4, options.backgroundColor);
         }
-        this.container.style.left = (x - this.offsetX) + 'px';
+        this.mainContainer.style.left = (x - this.offsetX) + 'px';
     }
 
     onMouseOut() {
         this.canvas.clear();
-        this.container.style.display = 'none';
+        this.mainContainer.style.display = 'none';
     }
 }

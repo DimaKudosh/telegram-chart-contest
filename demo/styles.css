@@ -1,0 +1,43 @@
+.night-mode {
+  background-color: #242f3e !important;
+}
+
+.night-mode .btn {
+  color: #36a8f1;
+}
+
+.night-mode .chart-title {
+  color: #fff;
+}
+
+.chart-containers {
+  max-width: 1000px;
+  margin: 0 auto 20px auto;
+}
+
+.chart-title {
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 50px;
+}
+
+.btn-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  background-color: #ffffff;
+  z-index: 10;
+}
+
+.btn {
+  display: block;
+  margin: 0 auto;
+  color: #108be3;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  outline: none;
+}

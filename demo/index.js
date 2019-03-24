@@ -46,23 +46,26 @@ const DAY_MODE_OPTIONS = {
         }
     }
 };
-const NIGHT_MODE_TEXT = 'Switch to Night Mode';
-const DAY_MODE_TEXT = 'Switch to Day Mode';
+const NIGHT_MODE_TEXT = 'Switch to Day Mode';
+const DAY_MODE_TEXT = 'Switch to Night Mode';
 let in_night_mode = false;
-
 
 function loadCharts(filename) {
     return new Promise((resolve, reject) => {
         const request = new XMLHttpRequest();
-        request.overrideMimeType("application/json");
-        request.open("GET", filename, true);
+        request.overrideMimeType('application/json');
+        request.open('GET', filename, true);
         request.onreadystatechange = function () {
-            if (request.readyState === 4 && request.status === 200) {
-                resolve(JSON.parse(request.responseText));
+            if (request.readyState === 4) {
+                if (request.status === 200) {
+                    resolve(JSON.parse(request.responseText));
+                } else {
+                    reject(request.status);
+                }
             }
         };
         request.send(null);
-    })
+    });
 }
 
 
@@ -84,48 +87,47 @@ function parseChartData(chartData) {
             });
         }
     }
-    return [labels, datasets]
+    return [labels, datasets];
 }
 
-
-const chartsFile = "chart_data.json";
-const charts = [];
-loadCharts(chartsFile).then(
-    (chartsData) => {
-        for (let i = 0; i < 5; i++) {
-            const id = i + 1;
-            const chartContainer = document.getElementById('chart-' + id);
-            const [labels, datasets] = parseChartData(chartsData[i]);
-            try {
+function run() {
+    const chartsFile = 'chart_data.json';
+    const charts = [];
+    loadCharts(chartsFile).then(
+        (chartsData) => {
+            for (let i = 0; i < 5; i++) {
+                const id = i + 1;
+                const chartContainer = document.getElementById('chart-' + id);
+                const [labels, datasets] = parseChartData(chartsData[i]);
                 const chart = new LineChart(chartContainer, labels, datasets, {});
                 charts.push(chart);
-            } catch (e) {
-                console.log(e);
             }
         }
-    }
-);
+    );
 
-const body = document.body;
-const btnContainer = document.getElementById('btn-container');
-const btn = document.getElementById('switch-mode-btn');
-btn.addEventListener('click', () => {
-    let mode, text;
-    if (!in_night_mode) {
-        mode = NIGHT_MODE_OPTIONS;
-        text = NIGHT_MODE_TEXT;
-        in_night_mode = true;
-        body.classList.add('night-mode');
-        btnContainer.classList.add('night-mode');
-    } else {
-        mode = DAY_MODE_OPTIONS;
-        text = DAY_MODE_TEXT;
-        in_night_mode = false;
-        body.classList.remove('night-mode');
-        btnContainer.classList.remove('night-mode');
-    }
-    for (const chart of charts) {
-        chart.updateOptions(mode);
-    }
-    btn.textContent = text;
-});
+    const body = document.body;
+    const btnContainer = document.getElementById('btn-container');
+    const btn = document.getElementById('switch-mode-btn');
+    btn.addEventListener('click', () => {
+        let mode, text;
+        if (!in_night_mode) {
+            mode = NIGHT_MODE_OPTIONS;
+            text = NIGHT_MODE_TEXT;
+            in_night_mode = true;
+            body.classList.add('night-mode');
+            btnContainer.classList.add('night-mode');
+        } else {
+            mode = DAY_MODE_OPTIONS;
+            text = DAY_MODE_TEXT;
+            in_night_mode = false;
+            body.classList.remove('night-mode');
+            btnContainer.classList.remove('night-mode');
+        }
+        for (const chart of charts) {
+            chart.updateOptions(mode);
+        }
+        btn.textContent = text;
+    });
+}
+
+run();

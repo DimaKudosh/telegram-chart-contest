@@ -8,7 +8,7 @@
     "build": "rollup -c rollup.config.js --environment ENV:production",
     "build-with-demo": "rollup -c rollup.config.js --environment WITH_DEMO:true",
     "build-with-demo-prod": "rollup -c rollup.config.js --environment ENV:production --environment WITH_DEMO:true",
-    "lint": "eslint src/**/*.js",
+    "lint": "eslint demo/**/*.js --fix",
     "lint-fix": "eslint src/**/*.js --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

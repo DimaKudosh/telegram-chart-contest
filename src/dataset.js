@@ -14,6 +14,10 @@ export default class Dataset {
         return Math.max(...this.data);
     }
 
+    getMin() {
+        return Math.min(...this.data);
+    }
+
     setRanges(start, end) {
         this.start = start;
         this.end = end;

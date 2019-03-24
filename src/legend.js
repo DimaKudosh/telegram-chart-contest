@@ -1,4 +1,4 @@
-import {OptionableUIElement} from "./base";
+import {OptionableUIElement} from './base';
 import { generateID } from './utils';
 
 

@@ -15,4 +15,8 @@ export default class BaseUIElement extends OptionableUIElement {
         this.canvas = canvas;
         this.ctx = canvas.getCtx();
     }
+
+    setAbsoluteValues(maxX, maxY) {
+        this.canvas.setAbsoluteValues(maxX, maxY);
+    }
 }

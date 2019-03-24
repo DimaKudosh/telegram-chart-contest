@@ -36,17 +36,20 @@ export default class Canvas {
     }
 
     setAbsoluteValues(maxX, maxY) {
-        this.xRatio = this.computeXRatio(maxX);
-        this.yRatio = this.computeYRatio(maxY);
+        if (maxX) this.xRatio = this.computeXRatio(maxX);
+        if (maxY) this.yRatio = this.computeYRatio(maxY);
+    }
+
+    translateY(y) {
+        return Math.round(this.height - y * this.yRatio) -  this.offsets.bottom;
+    }
+
+    translateX(x) {
+        return Math.round(x * this.xRatio) + this.offsets.left;
     }
 
     translatePoint(x, y) {
-        const offsets = this.offsets;
-        const yOffset = offsets.bottom;
-        const xOffset = offsets.left;
-        y = ~~(this.height - y * this.yRatio + 0.5) - yOffset;
-        x = ~~(x * this.xRatio + 0.5) + xOffset;
-        return [x, y];
+        return [this.translateX(x), this.translateY(y)];
     }
 
     drawLine(points, color, width=3) {
@@ -81,12 +84,6 @@ export default class Canvas {
         const ctx = this.ctx;
         [x, y] = this.translatePoint(x, y);
         ctx.fillText(text, x + (xOffset ? xOffset : 0), y + (yOffset ? yOffset : 0));
-    }
-
-    drawImage(img, x, y, xOffset, yOffset) {
-        const ctx = this.ctx;
-        [x, y] = this.translatePoint(x, y);
-        ctx.drawImage(img, x + (xOffset ? xOffset : 0), y + (yOffset ? yOffset : 0));
     }
 
     clear() {

@@ -7,26 +7,36 @@ export default class Line extends BaseUIElement {
         super(canvas, options);
         this.dataset = dataset;
         this.color = dataset.color;
-
         this.isDisplayed = false;
         this.callbacks = [];
-
         this.animation = new Animation();
+        this.clearPadding = 10;
+
+        this.lastMinY = 0;
+        this.lastMaxY = 0;
     }
 
     get points() {
         return Array.from(this.dataset.data.entries());
     }
 
+    clear() {
+        let {lastMinY, lastMaxY, clearPadding} = this;
+        let y = lastMinY - clearPadding;
+        let height = lastMaxY - lastMinY + 2 * clearPadding;
+        this.ctx.clearRect(0, y < 0 ? 0: y, this.canvas.width, height);
+    }
+
     animate() {
         const {animation, points, callbacks, canvas, ctx} = this;
         animation.cancel();
         animation.run(ctx, (progress) => {
-            canvas.clear();
+            this.clear();
             for (const callback of callbacks) {
                 callback(progress);
             }
             canvas.drawLine(points, this.color);
+            this.saveDrawnArea();
         });
         this.callbacks = [];
     }
@@ -68,8 +78,15 @@ export default class Line extends BaseUIElement {
 
     draw() {
         const canvas = this.canvas;
-        canvas.clear();
-        canvas.drawLine(Array.from(this.dataset.data.entries()), this.color);
+        this.clear();
+        canvas.drawLine(this.points, this.color);
+        this.saveDrawnArea();
         this.isDisplayed = true;
+    }
+
+    saveDrawnArea() {
+        const {dataset, canvas} = this;
+        this.lastMaxY = canvas.translateY(dataset.getMin());
+        this.lastMinY = canvas.translateY(dataset.getMax());
     }
 }

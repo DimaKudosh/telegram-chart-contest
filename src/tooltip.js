@@ -78,7 +78,7 @@ export default class Tooltip extends BaseUIElement {
     clear() {
         const {canvas, ctx} = this;
         const [x, h] = canvas.translatePoint(this.lastIndex, 0);
-        ctx.clearRect(x - 15, 0, 30, h);
+        ctx.clearRect(x - 10, 0, 20, h);
     }
 
     onMouseMove(e) {

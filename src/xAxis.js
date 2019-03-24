@@ -25,8 +25,6 @@ export default class XAxis extends BaseUIElement {
 
         this.appearSpacing = null;
         this.hideSpacing = null;
-
-        this.cache = {};
     }
 
     updateOptions(updatedOptions) {
@@ -40,10 +38,6 @@ export default class XAxis extends BaseUIElement {
     setSelection(start, end) {
         this.start = start;
         this.end = end;
-    }
-
-    setAbsoluteValues(maxX, maxY) {
-        this.canvas.setAbsoluteValues(maxX, maxY);
     }
 
     clear() {
@@ -106,16 +100,7 @@ export default class XAxis extends BaseUIElement {
         const offset = -this.start * canvas.xRatio;
         for (const index of indexes) {
             const tick = this.allLabels[index];
-            canvas.putText(index, 0, this.renderLabel(tick), offset, -this.bottomOffset);
+            canvas.putText(index, 0, timestampToString(tick).toString(), offset, -this.bottomOffset);
         }
-    }
-
-    renderLabel(value) {
-        let val = this.cache[value];
-        if (!val) {
-            val = timestampToString(value).toString();
-            this.cache[value] = val;
-        }
-        return val;
     }
 }

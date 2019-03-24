@@ -10,7 +10,7 @@ import Legend from './legend';
 import { DEFAULT_OPTIONS } from './options';
 
 
-export class LineChart {
+export default class LineChart {
     constructor(container, labels, datasets, userOptions) {
         const options = {...DEFAULT_OPTIONS, ...userOptions};
         this.options = options;
@@ -111,7 +111,7 @@ export class LineChart {
         if (selection) selection.updateOptions(newOptions.selection);
         if (legend) legend.updateOptions(newOptions.legend);
         if (preview) preview.updateOptions(newOptions.preview);
-        this.options = newOptions
+        this.options = newOptions;
     }
 
     calculateMaxValue() {
@@ -135,42 +135,50 @@ export class LineChart {
     setSelection(start, end) {
         this.start = start;
         this.end = end;
-        this.xAxis.setSelection(start, end);
-        for (const dataset of this.datasets) {
+        const {lines, labels, xAxis, yAxis, tooltip, datasets} = this;
+        const maxX = labels.length - 1;
+        for (const dataset of datasets) {
             dataset.setRanges(start, end);
         }
-        this.calculateMaxValue();
-        const {lines, labels, xAxis, maxValue: maxY} = this;
-        const maxX = labels.length - 1;
-        this.yAxis.animatedDraw(labels, maxY);
-        this.tooltip.canvas.setAbsoluteValues(maxX, maxY);
+        if (xAxis) {
+            xAxis.setSelection(start, end);
+            xAxis.setAbsoluteValues(maxX, this.maxValue);
+            xAxis.draw(labels);
+        }
+        if (!datasets.some(d => d.isDisplayed)) {
+            return;
+        }
+        const changed = this.calculateMaxValue();
+        const maxY = this.maxValue;
+        if (changed && yAxis) {
+            yAxis.animatedDraw(labels, maxY);
+        }
+        if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
         for (const line of lines) {
             if (line.dataset.isDisplayed) {
                 line.animatedResize(maxX, maxY).animate();
             } else {
-                line.canvas.setAbsoluteValues(maxX, maxY);
+                line.setAbsoluteValues(maxX, maxY);
             }
         }
-        xAxis.canvas.setAbsoluteValues(maxX, maxY);
-        xAxis.draw(labels, maxY);
     }
 
     emitLegendChange(index, isDisplayed) {
-        this.datasets[index].isDisplayed = isDisplayed;
-        const {maxValue:previousMaxY, lines, labels, preview, yAxis, tooltip} = this;
+        const {maxValue:previousMaxY, lines, labels, preview, yAxis, tooltip, datasets} = this;
+        datasets[index].isDisplayed = isDisplayed;
         const changed = this.calculateMaxValue();
         const maxX = labels.length - 1;
         const maxY = this.maxValue || previousMaxY;
         if (preview) preview.emitLegendChange(index, isDisplayed);
         if (changed) {
             if (yAxis) yAxis.animatedDraw(labels, maxY);
-            if (tooltip) tooltip.canvas.setAbsoluteValues(maxX, maxY);
+            if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
                 if (i === index) {
                     line.toggle();
                 } else if (!line.dataset.isDisplayed) {
-                    line.canvas.setAbsoluteValues(maxX, maxY);
+                    line.setAbsoluteValues(maxX, maxY);
                     continue;
                 }
                 line.animatedResize(maxX, maxY).animate();

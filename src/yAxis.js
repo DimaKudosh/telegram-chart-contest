@@ -37,7 +37,7 @@ export default class YAxis extends BaseUIElement {
             return;
         }
         const {animation, options: {totalTicks}, ctx, canvas} = this;
-        const spacing = maxY / (totalTicks - 1);
+        const spacing = Math.round(maxY / totalTicks);
         const newTicks = [];
         const xRatio = canvas.computeXRatio(labels.length - 1);
         const yRatio = canvas.computeYRatio(maxY);

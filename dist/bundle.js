@@ -118,10 +118,14 @@
         setAbsoluteValues(maxX, maxY) {
             this.canvas.setAbsoluteValues(maxX, maxY);
         }
+
+        clear() {
+            this.canvas.clear();
+        }
     }
 
     class Animation {
-        constructor(duration=250) {
+        constructor(duration=300) {
             this.duration = duration;
             this.reqId = null;
             this.isRunning = false;
@@ -198,7 +202,7 @@
         return intervals[intervals.length - 1] * fraction;
     }
 
-    function niceTicks(lo, hi, ticks=5, intervals=[1.0, 2.0, 2.5, 3.0, 5.0, 10.0]) {
+    function niceTicks(lo, hi, ticks=6, intervals=[1.0, 2.0, 2.5, 3.0, 5.0, 6.0, 10.0]) {
         const delta = hi - lo;
         const delta_tick = niceRound(delta / (ticks - 1), intervals);
         const lo_tick = Math.floor(lo / delta_tick) * delta_tick;
@@ -328,7 +332,7 @@
 
         draw(labels, maxValue) {
             const {canvas, options: {totalTicks}} = this;
-            const spacing = maxValue / (totalTicks - 1);
+            const spacing = Math.round(maxValue / (totalTicks - 1));
             const ticks = [];
             canvas.clear();
             for (let i = 0; i < totalTicks; i++) {
@@ -343,7 +347,7 @@
                 return;
             }
             const {animation, options: {totalTicks}, ctx, canvas} = this;
-            const spacing = Math.round(maxY / totalTicks);
+            const spacing = Math.round(maxY / (totalTicks - 1));
             const newTicks = [];
             const xRatio = canvas.computeXRatio(labels.length - 1);
             const yRatio = canvas.computeYRatio(maxY);
@@ -713,41 +717,30 @@
         }
     }
 
-    class Line extends BaseUIElement {
-        constructor(canvas, dataset, options) {
+    class Lines extends BaseUIElement {
+        constructor(canvas, datasets, options) {
             super(canvas, options);
-            this.dataset = dataset;
-            this.color = dataset.color;
+            this.datasets = datasets;
             this.isDisplayed = false;
             this.callbacks = [];
             this.animation = new Animation();
-            this.clearPadding = 10;
+            this.ctx.lineJoin = 'round';
 
-            this.lastMinY = 0;
-            this.lastMaxY = 0;
-        }
-
-        get points() {
-            return Array.from(this.dataset.data.entries());
-        }
-
-        clear() {
-            let {lastMinY, lastMaxY, clearPadding} = this;
-            let y = lastMinY - clearPadding;
-            let height = lastMaxY - lastMinY + 2 * clearPadding;
-            this.ctx.clearRect(0, y < 0 ? 0: y, this.canvas.width, height);
+            this.hiddingDatasets = [];
+            this.appearingDatasets = [];
         }
 
         animate() {
-            const {animation, points, callbacks, canvas, ctx} = this;
+            const {animation, callbacks, ctx} = this;
             animation.cancel();
             animation.run(ctx, (progress) => {
-                this.clear();
                 for (const callback of callbacks) {
                     callback(progress);
                 }
-                canvas.drawLine(points, this.color);
-                this.saveDrawnArea();
+                this.draw(progress);
+            }, () => {
+                this.appearingDatasets = [];
+                this.hiddingDatasets = [];
             });
             this.callbacks = [];
         }
@@ -764,41 +757,46 @@
             return this;
         }
 
-        appear() {
-            const ctx = this.ctx;
-            this.callbacks.push((progress) => {
-                ctx.globalAlpha = progress;
-            });
-            return this;
-        }
-
-        hide() {
-            const ctx = this.ctx;
-            this.callbacks.push((progress) => {
-                ctx.globalAlpha = 1 - progress;
-            });
-            return this;
-        }
-
-        toggle() {
-            if (this.dataset.isDisplayed) {
-                return this.appear();
+        toggle(index) {
+            const {appearingDatasets, hiddingDatasets} = this;
+            if (this.datasets[index].isDisplayed) {
+                appearingDatasets.push(index);
+                hiddingDatasets.splice(hiddingDatasets.indexOf(index), 1);
+            } else {
+                hiddingDatasets.push(index);
+                appearingDatasets.splice(appearingDatasets.indexOf(index), 1);
             }
-            return this.hide();
         }
 
-        draw() {
-            const canvas = this.canvas;
+        drawDataset(dataset) {
+            this.canvas.drawLine(Array.from(dataset.data.entries()), dataset.color);
+        }
+
+        draw(progress=1) {
             this.clear();
-            canvas.drawLine(this.points, this.color);
-            this.saveDrawnArea();
-            this.isDisplayed = true;
-        }
-
-        saveDrawnArea() {
-            const {dataset, canvas} = this;
-            this.lastMaxY = canvas.translateY(dataset.getMin());
-            this.lastMinY = canvas.translateY(dataset.getMax());
+            const {datasets, appearingDatasets, hiddingDatasets, ctx} = this;
+            for (let i = 0; i < datasets.length; i++) {
+                if (appearingDatasets.indexOf(i) !== -1 ||
+                    hiddingDatasets.indexOf(i) !== -1 ||
+                    !datasets[i].isDisplayed) {
+                    continue;
+                }
+                this.drawDataset(datasets[i]);
+            }
+            ctx.save();
+            if (appearingDatasets) {
+                ctx.globalAlpha = progress;
+                for (const i of appearingDatasets) {
+                    this.drawDataset(datasets[i]);
+                }
+            }
+            if (hiddingDatasets) {
+                ctx.globalAlpha = 1 - progress;
+                for (const i of hiddingDatasets) {
+                    this.drawDataset(datasets[i]);
+                }
+            }
+            ctx.restore();
         }
     }
 
@@ -864,7 +862,7 @@
             display: true,
             font: font,
             totalTicks: 6,
-            animation: 250,
+            animation: 300,
             color: '#96a2aa',
             underlineColor: '#f2f4f5',
         },
@@ -873,7 +871,7 @@
             font: font,
             totalTicks: 8,
             color: '#96a2aa',
-            animation: 400,
+            animation: 300,
         },
         legend: {
             display: true,
@@ -962,11 +960,9 @@
                 this.tooltip = new Tooltip(canvas, this, options.tooltip);
             }
 
-            this.lines = this.datasets.map((dataset) => {
-                const canvas = new Canvas(width, height, offsets);
-                layers.push(canvas);
-                return new Line(canvas, dataset, {});
-            });
+            const linesCanvas = new Canvas(width, height, offsets);
+            layers.push(linesCanvas);
+            this.lines = new Lines(linesCanvas, this.datasets, {});
 
             if (options.selection.display) {
                 const canvas = new Canvas(width, height, offsets, true);
@@ -1036,15 +1032,13 @@
             if (this.xAxis) this.xAxis.draw(this.labels, this.maxValue);
             if (this.yAxis) this.yAxis.draw(this.labels, this.maxValue);
             if (this.selection) this.selection.draw();
-            for (const line of this.lines) {
-                line.draw();
-            }
+            this.lines.draw();
         }
 
         setSelection(start, end) {
             this.start = start;
             this.end = end;
-            const {lines, labels, xAxis, yAxis, tooltip, datasets} = this;
+            const {labels, xAxis, yAxis, tooltip, datasets} = this;
             const maxX = labels.length - 1;
             for (const dataset of datasets) {
                 dataset.setRanges(start, end);
@@ -1063,13 +1057,8 @@
                 yAxis.animatedDraw(labels, maxY);
             }
             if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
-            for (const line of lines) {
-                if (line.dataset.isDisplayed) {
-                    line.animatedResize(maxX, maxY).animate();
-                } else {
-                    line.setAbsoluteValues(maxX, maxY);
-                }
-            }
+
+            this.lines.animatedResize(maxX, maxY).animate();
         }
 
         emitLegendChange(index, isDisplayed) {
@@ -1078,23 +1067,14 @@
             const changed = this.calculateMaxValue();
             const maxX = labels.length - 1;
             const maxY = this.maxValue || previousMaxY;
+            lines.toggle(index);
             if (preview) preview.emitLegendChange(index, isDisplayed);
             if (changed) {
                 if (yAxis) yAxis.animatedDraw(labels, maxY);
                 if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i];
-                    if (i === index) {
-                        line.toggle();
-                    } else if (!line.dataset.isDisplayed) {
-                        line.setAbsoluteValues(maxX, maxY);
-                        continue;
-                    }
-                    line.animatedResize(maxX, maxY).animate();
-                }
-            } else {
-                lines[index].toggle().animate();
+                lines.animatedResize(maxX, maxY);
             }
+            lines.animate();
         }
     }
 

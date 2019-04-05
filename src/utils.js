@@ -29,7 +29,7 @@ function niceRound(x, intervals) {
     return intervals[intervals.length - 1] * fraction;
 }
 
-export function niceTicks(lo, hi, ticks=5, intervals=[1.0, 2.0, 2.5, 3.0, 5.0, 10.0]) {
+export function niceTicks(lo, hi, ticks=6, intervals=[1.0, 2.0, 2.5, 3.0, 5.0, 6.0, 10.0]) {
     const delta = hi - lo;
     const delta_tick = niceRound(delta / (ticks - 1), intervals);
     const lo_tick = Math.floor(lo / delta_tick) * delta_tick;

@@ -5,7 +5,7 @@ import Selection from './selection';
 import { niceTicks } from './utils';
 import Dataset from './dataset';
 import Tooltip from './tooltip';
-import Line from './line';
+import Lines from './lines';
 import Legend from './legend';
 import { DEFAULT_OPTIONS } from './options';
 
@@ -53,11 +53,9 @@ export default class LineChart {
             this.tooltip = new Tooltip(canvas, this, options.tooltip);
         }
 
-        this.lines = this.datasets.map((dataset) => {
-            const canvas = new Canvas(width, height, offsets);
-            layers.push(canvas);
-            return new Line(canvas, dataset, {});
-        });
+        const linesCanvas = new Canvas(width, height, offsets);
+        layers.push(linesCanvas);
+        this.lines = new Lines(linesCanvas, this.datasets, {});
 
         if (options.selection.display) {
             const canvas = new Canvas(width, height, offsets, true);
@@ -127,15 +125,13 @@ export default class LineChart {
         if (this.xAxis) this.xAxis.draw(this.labels, this.maxValue);
         if (this.yAxis) this.yAxis.draw(this.labels, this.maxValue);
         if (this.selection) this.selection.draw();
-        for (const line of this.lines) {
-            line.draw();
-        }
+        this.lines.draw();
     }
 
     setSelection(start, end) {
         this.start = start;
         this.end = end;
-        const {lines, labels, xAxis, yAxis, tooltip, datasets} = this;
+        const {labels, xAxis, yAxis, tooltip, datasets} = this;
         const maxX = labels.length - 1;
         for (const dataset of datasets) {
             dataset.setRanges(start, end);
@@ -154,13 +150,8 @@ export default class LineChart {
             yAxis.animatedDraw(labels, maxY);
         }
         if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
-        for (const line of lines) {
-            if (line.dataset.isDisplayed) {
-                line.animatedResize(maxX, maxY).animate();
-            } else {
-                line.setAbsoluteValues(maxX, maxY);
-            }
-        }
+
+        this.lines.animatedResize(maxX, maxY).animate();
     }
 
     emitLegendChange(index, isDisplayed) {
@@ -169,22 +160,13 @@ export default class LineChart {
         const changed = this.calculateMaxValue();
         const maxX = labels.length - 1;
         const maxY = this.maxValue || previousMaxY;
+        lines.toggle(index);
         if (preview) preview.emitLegendChange(index, isDisplayed);
         if (changed) {
             if (yAxis) yAxis.animatedDraw(labels, maxY);
             if (tooltip) tooltip.setAbsoluteValues(maxX, maxY);
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i];
-                if (i === index) {
-                    line.toggle();
-                } else if (!line.dataset.isDisplayed) {
-                    line.setAbsoluteValues(maxX, maxY);
-                    continue;
-                }
-                line.animatedResize(maxX, maxY).animate();
-            }
-        } else {
-            lines[index].toggle().animate();
+            lines.animatedResize(maxX, maxY);
         }
+        lines.animate();
     }
 }

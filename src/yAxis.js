@@ -22,7 +22,7 @@ export default class YAxis extends BaseUIElement {
 
     draw(labels, maxValue) {
         const {canvas, options: {totalTicks}} = this;
-        const spacing = maxValue / (totalTicks - 1);
+        const spacing = Math.round(maxValue / (totalTicks - 1));
         const ticks = [];
         canvas.clear();
         for (let i = 0; i < totalTicks; i++) {
@@ -37,7 +37,7 @@ export default class YAxis extends BaseUIElement {
             return;
         }
         const {animation, options: {totalTicks}, ctx, canvas} = this;
-        const spacing = Math.round(maxY / totalTicks);
+        const spacing = Math.round(maxY / (totalTicks - 1));
         const newTicks = [];
         const xRatio = canvas.computeXRatio(labels.length - 1);
         const yRatio = canvas.computeYRatio(maxY);

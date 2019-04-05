@@ -1,5 +1,5 @@
 export default class Animation {
-    constructor(duration=250) {
+    constructor(duration=300) {
         this.duration = duration;
         this.reqId = null;
         this.isRunning = false;

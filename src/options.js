@@ -7,7 +7,7 @@ export const DEFAULT_OPTIONS = {
         display: true,
         font: font,
         totalTicks: 6,
-        animation: 250,
+        animation: 300,
         color: '#96a2aa',
         underlineColor: '#f2f4f5',
     },
@@ -16,7 +16,7 @@ export const DEFAULT_OPTIONS = {
         font: font,
         totalTicks: 8,
         color: '#96a2aa',
-        animation: 400,
+        animation: 300,
     },
     legend: {
         display: true,
